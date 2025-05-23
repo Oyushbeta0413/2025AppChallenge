@@ -1,0 +1,2 @@
+May 23rd 2025 Subject: Instructions for PDFParsing.py
+Team, I have created the python functions for the pdf parsing, so there is already file upload and my code will extract the text and save it into a variable called parsed_text(if you guys need to access the data of each user input, it will be in parsed_text list).
