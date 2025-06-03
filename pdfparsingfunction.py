@@ -1,44 +1,56 @@
 import streamlit as st
-import fitz
-import re
+from transformers import pipeline
+import pdfplumber
+from PIL import Image
+import pytesseract
+import time
+import os
 
-uploaded_file = st.file_uploader("Upload Medical Report", type=["pdf", "txt", "log", "md", "csv"])
 
-orientation = st.selectbox(
-    "How is the data formatted in your report?"
-    ["Horizontal", "Vertical"]
-)
+ner = pipeline("ner", model="d4data/biomedical-ner-all", tokenizer="d4data/biomedical-ner-all", aggregation_strategy="simple")
+summarizer = pipeline("summarization", model="Falconsai/text_summarization")
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-pasred_text = ""
 
-def parse_horizontal(text):
-    lines=text.splitlines()
-    extracted=[]
-    for line in lines:
-        if ":" in line or "-" in line:
-            extracted.append(line.strip())
-    return "\n".join(extracted)
+# def loading(seconds):
+#     for i in range(seconds, 0, -1):
+#         print(i)
+#         time.sleep(1)
+#     print("Time's up!")
 
-def parse_vertical(text):
-    lines=text.splitlines()
-    extracted = []
-    for i in range(len(lines)-1):
-        label = lines[i].strip()
-        value = lines[i+1].strip()
-        if label and value and re.search(r"[a-zA-Z]", label) and re.search(r"\d", value):
-            extracted.append(f"{label}: {value}")
-    return "\n".join(extracted)
+def extract_pdf(medical_report):
+    with pdfplumber.open(medical_report) as pdf:
+        return "\n".join(page.extract_pdf() or '' for page in pdf.pages)
 
-if uploaded_file is not None:
-    doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-    all_text = ""
-    for page in doc:
-        all_text += page.get_text("text") + "\n"
-        
-    if orientation == "Horizontal":
-        parsed_text = parse_horizontal(all_text)
-    else:
-        parsed_text = parse_vertical(all_text)
-        
+def extract_image(medical_report):
+    image = Image.open(medical_report)
+    return pytesseract.image_to_string(image)
 
+def summarize_text(text):
+    if len(text) > 250:
+        st.subheader("Summarizing Your Report...")
+        summary = summarizer(text, max_length=150, min_length=50, do_sample=False)
+        return summary[0]['summary_text']
+    return None
+
+def main():
+    medical_report = st.file_uploader(
+        "Please upload your medical report",
+        type=["pdf", "jpg", "image", "png", ]
+    )   
     
+    if medical_report is not None:
+        filename = medical_report.name
+        ext = os.path.splitext(filename)[1].lower()        
+
+        if ext == ".pdf":
+            text = extract_pdf(medical_report)
+            st.text(text)
+        if ext in [".png", ".jpg", ".jpeg"]:
+            text = extract_image(medical_report)
+            st.text(text)
+        else:
+            st.markdown("<h3 style='color: red;'>Unsupported File Type</h3>", unsafe_allow_html=True)
+    
+main()
+
