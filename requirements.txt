@@ -1,0 +1,15 @@
+streamlit
+fastapi
+uvicorn
+transformers
+torch
+pytesseract
+Pillow
+numpy==1.26.4
+PyMuPDF
+requests
+google-generativeai
+opencv-python
+pdf2image
+python-multipart
+spacy
