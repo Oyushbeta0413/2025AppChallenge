@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Document Analyzer | CTRL + ALT + HEAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
+</head>
+<body class="bg-[#F7F8F9] font-sans min-h-screen">
+
+  <!-- 🧭 Navbar -->
+  <nav class="bg-white shadow px-6 py-4 mb-8">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
+        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
+        <li><a href="analyzer.html" class="text-[#6B9080] font-semibold">Document Analyzer</a></li>
+        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 📄 Analyzer Section -->
+  <main class="max-w-5xl mx-auto px-4 mb-16">
+    <!-- Upload Box -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-[#6B9080] mb-4">Upload & Analyze Your Medical PDF</h2>
+      <input type="file" id="pdf-upload" accept="application/pdf" class="w-full mb-4 border border-gray-300 rounded px-3 py-2">
+      <p id="loading" class="text-gray-600">No file uploaded yet.</p>
+    </div>
+
+    <!-- OCR Canvas (Hidden) -->
+    <canvas id="pdf-canvas" class="hidden"></canvas>
+
+    <!-- Text Output -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Extracted Text</h3>
+      <div id="text-output" class="whitespace-pre-wrap h-60 overflow-y-auto bg-[#F9FAFB] text-sm text-gray-800 border border-gray-200 rounded p-4">
+        OCR results will appear here.
+      </div>
+    </div>
+
+    <!-- Chatbot Section -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Ask Chatbot</h3>
+      <div id="chat-output" class="space-y-2 h-48 overflow-y-auto border border-gray-200 rounded p-4 bg-[#F9FAFB] text-sm text-gray-800">
+        <p><strong>CTRLbot:</strong> Upload your report and ask me anything related to it.</p>
+      </div>
+      <div class="flex mt-4 gap-2">
+        <input type="text" id="user-question" placeholder="e.g., What is HCT?" class="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#6B9080]">
+        <button onclick="askLocalBot()" class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F]">Ask</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- JS Logic for OCR + Chat -->
+  <script>
+    let extractedText = '';
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    const textOutput = document.getElementById('text-output');
+    const loadingEl = document.getElementById('loading');
+
+    document.getElementById('pdf-upload').addEventListener('change', async function (event) {
+      const file = event.target.files[0];
+      if (!file || file.type !== 'application/pdf') return;
+
+      loadingEl.textContent = "Processing PDF...";
+      const reader = new FileReader();
+
+      reader.onload = async function () {
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(reader.result) }).promise;
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 2 });
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          const imgData = canvas.toDataURL();
+
+          loadingEl.textContent = `Running OCR on page ${i}...`;
+          const result = await Tesseract.recognize(imgData, 'eng');
+          fullText += `--- Page ${i} ---\n` + result.data.text + '\n\n';
+        }
+
+        extractedText = fullText;
+        textOutput.textContent = fullText;
+        loadingEl.textContent = "Done! Now ask me anything below.";
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+
+    function askLocalBot() {
+      const chatBox = document.getElementById('chat-output');
+      const question = document.getElementById('user-question').value.trim();
+
+      if (!question || !extractedText) {
+        alert("Please upload a PDF and ask a question.");
+        return;
+      }
+
+      chatBox.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
+      const lowerQ = question.toLowerCase();
+      let reply = "Sorry, I couldn't find anything about that in your report.";
+
+      if (lowerQ.includes("hct") || lowerQ.includes("hematocrit")) {
+        reply = "HCT (hematocrit) refers to the % of red blood cells in your blood. Normal: ~38-50%.";
+      } else if (lowerQ.includes("cholesterol")) {
+        reply = "Look for LDL, HDL, and total cholesterol to evaluate heart health.";
+      } else if (lowerQ.includes("glucose") || lowerQ.includes("sugar")) {
+        reply = "Fasting blood sugar should be between 70-99 mg/dL.";
+      } else if (lowerQ.includes("blood pressure")) {
+        reply = "Normal BP is around 120/80 mmHg.";
+      } else if (extractedText.toLowerCase().includes(lowerQ)) {
+        reply = `That appears in your report. Please consult a doctor for interpretation.`;
+      }
+
+      chatBox.innerHTML += `<p><strong>CTRLbot:</strong> ${reply}</p>`;
+      document.getElementById('user-question').value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
