@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Document Analyzer | CTRL + ALT + HEAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
+</head>
+<body class="bg-[#F7F8F9] font-sans min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow px-6 py-4 mb-8">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
+        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
+        <li><a href="analyzer.html" class="text-[#6B9080] font-semibold">Document Analyzer</a></li>
+        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Analyzer Section -->
+  <main class="max-w-5xl mx-auto px-4 mb-16">
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-[#6B9080] mb-4">Upload & Analyze Your Medical PDF</h2>
+      <input type="file" id="pdf-upload" accept=".pdf, image/*" class="w-full mb-4 border border-gray-300 rounded px-3 py-2">
+      <p id="loading" class="text-gray-600">No file uploaded yet.</p>
+    </div>
+
+    <!-- Extracted Text Output -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Extracted Text</h3>
+      <div id="text-output" class="whitespace-pre-wrap h-60 overflow-y-auto bg-[#F9FAFB] text-sm text-gray-800 border border-gray-200 rounded p-4">
+        OCR results will appear here.
+      </div>
+    </div>
+
+    <!-- Summary Output -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Summarized Text</h3>
+      <div class="whitespace-pre-wrap h-60 overflow-y-auto bg-white text-sm text-gray-800 border border-gray-200 rounded p-4">
+        <pre id="summaryBox">...</pre>
+      </div>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Ask Chatbot</h3>
+      <div id="chat-output" class="space-y-2 h-48 overflow-y-auto border border-gray-200 rounded p-4 bg-[#F9FAFB] text-sm text-gray-800">
+        <p><strong>CTRLbot/Chatbot:</strong>Ask me smth</p>
+      </div>
+      <div class="flex mt-4 gap-2">
+        <input type="text" id="user-question" placeholder="Ask a question about your report" class="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#6B9080]">
+        <button onclick="askLocalBot()" class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F]">Ask</button>
+      </div>
+    </div>
+  </main>
+
+
+  <script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0';
+    let extractedText = '';
+    let summarizedText = '';
+    const textOutput = document.getElementById('text-output');
+    const loadingEl = document.getElementById('loading');
+
+    document.getElementById('pdf-upload').addEventListener('change', async function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      loadingEl.textContent = "Processing...";
+      textOutput.textContent = "";
+      document.getElementById("summaryBox").textContent = "...";
+
+      const isImage = file.type.startsWith('image/');
+
+      if (isImage) {
+        try {
+          const imageUrl = URL.createObjectURL(file);
+          const result = await Tesseract.recognize(imageUrl, 'eng');
+          extractedText = result.data.text.trim(); 
+          console.log("OCR extracted text:", extractedText);
+
+          loadingEl.textContent = "OCR complete. Sending to backend...";
+
+          const response = await fetch('http://localhost:8001/analyze-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: extractedText }),
+          });
+
+          if (!response.ok) throw new Error(`Backend error: ${response.status}`);
+
+          const data = await response.json();
+
+          textOutput.textContent = extractedText || "[No text found by OCR]";
+          document.getElementById("summaryBox").textContent = data.summary || "[No summary available]";
+          loadingEl.textContent = "Analysis complete!";
+        } catch (error) {
+          loadingEl.textContent = "Error: " + error.message;
+          textOutput.textContent = "";
+          document.getElementById("summaryBox").textContent = "";
+        }
+      } else {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const response = await fetch('http://localhost:8001/analyze', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) throw new Error(`Backend error: ${response.status}`);
+
+          const data = await response.json();
+
+          extractedText = data.extracted_text || "";
+          textOutput.textContent = extractedText || "[No text extracted from PDF]";
+          document.getElementById("summaryBox").textContent = data.summary || "[No summary available]";
+          loadingEl.textContent = "don";
+        } catch (error) {
+          loadingEl.textContent = "Error: " + error.message;
+          textOutput.textContent = "";
+          document.getElementById("summaryBox").textContent = "";
+        }
+      }
+    });
+
+    window.askLocalBot =  async function () {
+      const chatBox = document.getElementById('chat-output');
+      const question = document.getElementById('user-question').value.trim();
+
+      if (!question || !extractedText) {
+        alert("Please upload a med report(pdf)");
+        return;
+      }
+
+      
+
+        env.allowLocalModels = false;
+
+      const answerer = await pipeline('question-answering', 'Xenova/distilbert-base-uncased-distilled-squad');
+      const context = extractedText;
+      const output = await answerer(question, context);
+      // {
+      //   answer: "something",
+      //   score: 0.5 = 50% sure
+      // }
+      
+      console.log(output.answer);
+      const score = output.score * 100;
+      console.log(score + "%");
+      
+
+      chatBox.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
+
+      chatBox.innerHTML += `<p><strong>Chatbot: </strong>${output.answer}</p>`;
+      document.getElementById('user-question').value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+    };
+  </script>
+</body>
+</html>
