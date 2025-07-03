@@ -12,7 +12,7 @@ import pytesseract
 import platform
 
 
-if platform.system() == "Darwin":  # <- this is macOS! #ashrith chatgpt code
+if platform.system() == "Darwin":  # <- this is macOS!
     pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'
 elif platform.system() == "Windows":  
     pytesseract.pytesseract.tesseract_cmd = r'C:\Users\vihaa\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
