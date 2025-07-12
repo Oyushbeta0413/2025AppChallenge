@@ -1,191 +1,126 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import pdfplumber
+from typing import Optional
+import pytesseract
+from PIL import Image
 import io
+import fitz  # PyMuPDF
 import traceback
-from pdf2image import convert_from_bytes
-import pytesseract
-from transformers import BertTokenizer, BertForSequenceClassification
-import torch
-import pytesseract
-import platform
+
+from bert import analyze_with_clinicalBert, classify_disease_and_severity
+from disease_links import diseases as disease_links
+from disease_steps import disease_next_steps
+from disease_support import disease_doctor_specialty, disease_home_care
 
 
-if platform.system() == "Darwin":  # <- this is macOS! #ashrith chatgpt code
-    pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'
-elif platform.system() == "Windows":  
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Users\vihaa\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
-else:
-    print("error")
-
-
-#fast api wrap around original st code
+# -------------------
+# App and CORS Setup
+# -------------------
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], #when production actually happens we need to use the url for frontend in origin
+    allow_origins=[
+        "http://localhost:8002",
+        "http://localhost:9000"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# -------------------
+# PDF Image Extraction
+# -------------------
+def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
+    """
+    Use PyMuPDF to extract pages as images in bytes.
+    """
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    images = []
+    for page in doc:
+        pix = page.get_pixmap()
+        buf = io.BytesIO()
+        buf.write(pix.tobytes("png"))
+        images.append(buf.getvalue())
+    return images
 
-clinical_bert_model = BertForSequenceClassification.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
-clinical_bert_tokenizer = BertTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
+# -------------------
+# OCR
+# -------------------
+def ocr_text_from_image(image_bytes: bytes) -> str:
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    return pytesseract.image_to_string(image)
 
-#for the keywords
-basic_disease_map = {
-    "covid": "COVID-19",
-    "corona": "COVID-19",
-    "influenza": "Influenza",
-    "flu": "Influenza",
-    "cold": "Common Cold",
-    "asthma": "Asthma",
-    "pneumonia": "Pneumonia",
-    "bronchitis": "Bronchitis",
-    "tuberculosis": "Tuberculosis",
-    "lung cancer": "Lung Cancer",
-    "copd": "Chronic Obstructive Pulmonary Disease",
-    "heart": "Heart Disease",
-    "stroke": "Stroke",
-    "hypertension": "Hypertension",
-    "high blood pressure": "Hypertension",
-    "arrhythmia": "Arrhythmia",
-    "cardiomyopathy": "Cardiomyopathy",
-    "diabetes": "Diabetes",
-    "type 1 diabetes": "Type 1 Diabetes",
-    "type 2 diabetes": "Type 2 Diabetes",
-    "insulin resistance": "Insulin Resistance",
-    "cancer": "Cancer",
-    "leukemia": "Leukemia",
-    "lymphoma": "Lymphoma",
-    "melanoma": "Melanoma",
-    "skin cancer": "Skin Cancer",
-    "breast cancer": "Breast Cancer",
-    "prostate cancer": "Prostate Cancer",
-    "colon cancer": "Colon Cancer",
-    "liver cancer": "Liver Cancer",
-    "ovarian cancer": "Ovarian Cancer",
-    "pancreatic cancer": "Pancreatic Cancer",
-    "cervical cancer": "Cervical Cancer",
-    "brain tumor": "Brain Tumor",
-    "migraine": "Migraine",
-    "epilepsy": "Epilepsy",
-    "parkinson": "Parkinson's Disease",
-    "alzheimer": "Alzheimer's Disease",
-    "dementia": "Dementia",
-    "multiple sclerosis": "Multiple Sclerosis",
-    "als": "ALS (Amyotrophic Lateral Sclerosis)",
-    "arthritis": "Arthritis",
-    "rheumatoid arthritis": "Rheumatoid Arthritis",
-    "gout": "Gout",
-    "lupus": "Lupus",
-    "fibromyalgia": "Fibromyalgia",
-    "eczema": "Eczema",
-    "psoriasis": "Psoriasis",
-    "vitiligo": "Vitiligo",
-    "anemia": "Anemia",
-    "hemophilia": "Hemophilia",
-    "thalassemia": "Thalassemia",
-    "hepatitis": "Hepatitis",
-    "hepatitis a": "Hepatitis A",
-    "hepatitis b": "Hepatitis B",
-    "hepatitis c": "Hepatitis C",
-    "kidney": "Kidney Disease",
-    "renal failure": "Renal Failure",
-    "nephritis": "Nephritis",
-    "urinary tract infection": "UTI",
-    "prostatitis": "Prostatitis",
-    "thyroid": "Thyroid Disorder",
-    "hyperthyroidism": "Hyperthyroidism",
-    "hypothyroidism": "Hypothyroidism",
-    "obesity": "Obesity",
-    "malnutrition": "Malnutrition",
-    "hiv": "HIV/AIDS",
-    "aids": "HIV/AIDS",
-    "std": "Sexually Transmitted Disease",
-}
+# -------------------
+# /analyze endpoint
+# -------------------
+@app.post("/analyze/")
+async def analyze(
+    file: UploadFile = File(...),
+    model: Optional[str] = Form("bert"),
+    mode: Optional[str] = Form(None)
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded.")
 
-class TextRequest(BaseModel):
-    text: str
+    filename = file.filename.lower()
+    detected_diseases = set()
+    ocr_full = ""
 
-def classify_disease_and_severity(text):
-    try:
-        inputs = clinical_bert_tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-        with torch.no_grad():
-            outputs = clinical_bert_model(**inputs)
-        predicted_class = torch.argmax(outputs.logits, dim=-1).item()
-        severity = "Mild" if predicted_class == 0 else "Severe, get help quick"
-    except Exception:
-        severity = "Unknown"
+    # Handle PDF or image
+    if filename.endswith(".pdf"):
+        pdf_bytes = await file.read()
+        image_bytes_list = extract_images_from_pdf_bytes(pdf_bytes)
+    else:
+        content = await file.read()
+        image_bytes_list = [content]
 
-    disease = "Unknown"
-    for keyword, label in basic_disease_map.items():
-        if keyword in text.lower():
-            disease = label
-            break
+    # Process each image
+    for img_bytes in image_bytes_list:
+        ocr_text = ocr_text_from_image(img_bytes)
+        ocr_full += ocr_text + "\n\n"
 
-    return severity, disease
+        if model.lower() == "gemini":
+            return {"message": "Gemini model not available; please use BERT model."}
 
-def analyze_text(text):
-    found = [label for k, label in basic_disease_map.items() if k in text.lower()]
-    description = "The text contains: " + (", ".join(found) if found else "uncertain content.")
-    severity, disease = classify_disease_and_severity(text)
+        # Analyze with BERT
+        _ = analyze_with_clinicalBert(ocr_text)
+        severity, disease = classify_disease_and_severity(ocr_text)
+
+        if disease and disease.lower() != "unknown":
+            detected_diseases.add((disease, severity))
+
+    # Build recommendations
+    resolution = []
+    for disease, severity in detected_diseases:
+        link = disease_links.get(disease.lower(), "https://www.webmd.com/")
+        key = disease.lower().strip()
+        next_steps = disease_next_steps.get(key, ["Consult a doctor for further evaluation."])
+        specialist = disease_doctor_specialty.get(disease.lower(), "General Practitioner")
+        home_care = disease_home_care.get(disease.lower(), [])
+
+        resolution.append({
+            "findings": disease,
+            "severity": severity,
+            "recommendations": next_steps,
+            "treatment_suggestions": f"Consult a specialist: {specialist}",
+            "home_care_guidance": home_care,
+            "info_link": link
+        })
 
     return {
-        "extracted_text": text,
-        "summary": f"{description} Severity: {severity}. Disease: {disease}.",
-        "ner_results": found,
-        "risks": severity,
-        "specialists": ["Specialist in " + disease] if disease != "Unknown" else ["General Physician"]
+        "ocr_text": ocr_full.strip(),
+        "resolutions": resolution
     }
 
-def extract_text_from_pdf(pdf_bytes):
-    text = ""
-    try:
-        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text + "\n"
-        print("[DEBUG] pdfplumber extracted:", bool(text.strip()))
-    except Exception as e:
-        print("[ERROR] pdfplumber failed:", str(e))
 
-    if text.strip():
-        return text
-
-    print("[DEBUG] No text found, attempting OCR fallback...")
-
-    try:
-        poppler_path = r"C:\Users\vihaa\Downloads\poppler-24.08.0-0\poppler-24.08.0\Library\bin"
-        images = convert_from_bytes(pdf_bytes, poppler_path=poppler_path)
-        ocr_text = "\n".join([pytesseract.image_to_string(img) for img in images])
-        print("[DEBUG] OCR result:", repr(ocr_text[:100]))
-        return ocr_text
-    except Exception as e:
-        print("[ERROR] OCR fallback failed:", str(e))
-        return ""
-
-@app.post("/analyze")
-async def analyze(file: UploadFile = File(...)):
-    try:
-        if not file.filename.endswith(".pdf"):
-            raise HTTPException(status_code=400, detail="Only PDF files are supported")
-
-        pdf_bytes = await file.read()
-        full_text = extract_text_from_pdf(pdf_bytes)
-
-        if not full_text.strip():
-            raise HTTPException(status_code=400, detail="No readable text found (even with OCR).")
-
-        return analyze_text(full_text)
-
-    except Exception as e:
-        print("ERROR in /analyze:", traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
+# -------------------
+# /analyze-text endpoint
+# -------------------
+class TextRequest(BaseModel):
+    text: str
 
 @app.post("/analyze-text")
 async def analyze_text_endpoint(request: TextRequest):
@@ -194,3 +129,11 @@ async def analyze_text_endpoint(request: TextRequest):
     except Exception as e:
         print("ERROR in /analyze-text:", traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error analyzing text: {str(e)}")
+
+
+def analyze_text(text):
+    severity, disease = classify_disease_and_severity(text)
+    return {
+        "extracted_text": text,
+        "summary": f"Detected Disease: {disease}, Severity: {severity}"
+    }
