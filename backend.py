@@ -8,8 +8,8 @@ import io
 import fitz  # PyMuPDF
 import base64
 import google.generativeai as genai
-#from bert_new import analyze_with_clinicalBert
-from scispacy import analyze_with_scispacy
+from bert import analyze_with_clinicalBert,classify_disease_and_severity
+from disease_links import diseases as disease_links
 from disease_steps import disease_next_steps
 from disease_support import disease_doctor_specialty,disease_home_care
 from gemini import analyze_with_gemini
@@ -79,17 +79,19 @@ async def analyze(
             return analysis
         else:  # BERT
             input_text = ocr_text + "\nWhat are the key medical issues here?"
-            #analysis = analyze_with_clinicalBert(input_text)
+            analysis = analyze_with_clinicalBert(input_text)
 
-            analysis = analyze_with_scispacy(input_text);
+            #analysis = analyze_with_scispacy(input_text);
             resolution = analysis
-        '''
+        
         severity, disease = classify_disease_and_severity(ocr_text)
         disease_summary = f"Detected Disease: {disease}, Severity: {severity}"
         if disease and disease != "Unknown":
-            detected_diseases.add((disease, severity))
+            detected_diseases.add((str(disease), str(severity)))
+
         # Construct resolutions
         resolution = []
+        print("Detected Diseases:", detected_diseases)
 
         for disease, severity in detected_diseases:
             link = disease_links.get(disease.lower(), "https://www.webmd.com/")
@@ -105,7 +107,7 @@ async def analyze(
                 "home_care_guidance": home_care
             })
 
-        '''
+        
 
         return {
             "resolutions": resolution
