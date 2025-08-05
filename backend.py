@@ -1,10 +1,3 @@
-"""
-app.py  ▸  FastAPI backend with
-         • ClinicalBERT (severity)
-         • multi-label disease detection
-         • Negation / uncertainty filtering
-         • ~230 authoritative links
-"""
 from __future__ import annotations
 from typing import List, Dict, Tuple, Set, Optional
 import io, re
@@ -19,9 +12,6 @@ from pdf2image import convert_from_path
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  ClinicalBERT  (loads once at startup)
-# ─────────────────────────────────────────────────────────────────────────────
 CLINICAL_BERT_MODEL = BertForSequenceClassification.from_pretrained(
     "emilyalsentzer/Bio_ClinicalBERT"
 )
@@ -33,11 +23,7 @@ def _severity_label(logits: torch.Tensor) -> str:
     """Index 0 → Mild, index 1 → Severe  (flip if you fine-tuned differently)."""
     return "Mild" if torch.argmax(logits, dim=-1).item() == 0 else "Severe"
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Negation / uncertainty patterns  (extend any time)
-# ─────────────────────────────────────────────────────────────────────────────
-# NOTE – patterns are checked **before** the disease keyword and must appear
-# within the same sentence. Feel free to tweak window sizes or add phrases.
+
 NEG_PATTERNS = [
     r"\bno\b",
     r"\bnot\b",
@@ -60,9 +46,7 @@ UNCERTAIN_PATTERNS = [
 NEG_RE   = re.compile("|".join(NEG_PATTERNS),   flags=re.I)
 UNCT_RE  = re.compile("|".join(UNCERTAIN_PATTERNS), flags=re.I)
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Disease keyword table  (≈230 common conditions; extend freely)
-# ─────────────────────────────────────────────────────────────────────────────
+
 DISEASE_KEYWORDS: Dict[str, List[str]] = {
     # cardio / vascular
     "Heart Disease"      : ["heart disease", "coronary", "cardiac", "myocard"],
@@ -170,24 +154,19 @@ DISEASE_KEYWORDS: Dict[str, List[str]] = {
     "Chronic Pain"       : ["chronic pain"],
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Authoritative links (same as before – trimmed for brevity)
-#    • add / change any URL without touching the rest of the code
-# ─────────────────────────────────────────────────────────────────────────────
+
 DISEASE_LINKS: Dict[str, str] = {
-    # exhaustive list omitted for space; keep the ~230-entry dict you already have
+   
     "covid-19": "https://www.cdc.gov/coronavirus/2019-ncov/",
     "diabetes": "https://www.cdc.gov/diabetes/",
     "heart disease": "https://www.cdc.gov/heartdisease/",
-    # ...
+    
 }
 def _fallback_link(disease: str) -> str:
     from urllib.parse import quote_plus
     return f"https://www.webmd.com/search/search_results/default.aspx?query={quote_plus(disease)}"
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Negation-aware disease extractor
-# ─────────────────────────────────────────────────────────────────────────────
+
 _sentence_split_re = re.compile(r"(?<=[\.\!\?])\s+")
 
 def _is_positive_mention(sentence: str, kw: str) -> bool:
@@ -196,7 +175,7 @@ def _is_positive_mention(sentence: str, kw: str) -> bool:
     False → negated or uncertain in this sentence
     """
     pre, *_ = sentence.lower().partition(kw)
-    # Check for negations / uncertainties **within the part BEFORE** the keyword
+ 
     if NEG_RE.search(pre): return False
     if UNCT_RE.search(pre): return False
     return True
@@ -213,17 +192,15 @@ def detect_positive_diseases(text: str) -> Set[str]:
             for kw in kws:
                 if kw in sent_l and _is_positive_mention(sent_l, kw):
                     diseases.add(disease)
-                    break  # one positive hit is enough
+                    break 
     return diseases
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Combined classifier
-# ─────────────────────────────────────────────────────────────────────────────
+
 def classify_diseases_and_severity(text: str) -> Tuple[str, List[str]]:
     """
     Returns overall severity ('Mild' | 'Severe')  +  list of *positive* diseases.
     """
-    # severity from BERT
+
     inputs = CLINICAL_BERT_TOKENIZER(
         text, return_tensors="pt", truncation=True, padding=True, max_length=512
     )
@@ -231,13 +208,11 @@ def classify_diseases_and_severity(text: str) -> Tuple[str, List[str]]:
         logits = CLINICAL_BERT_MODEL(**inputs).logits
     severity = _severity_label(logits)
 
-    # diseases via NegEx-style sweep
+    
     diseases = sorted(detect_positive_diseases(text))
     return severity, diseases if diseases else ["Unknown"]
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  OCR helpers
-# ─────────────────────────────────────────────────────────────────────────────
+
 def ocr_text_from_image(image_bytes: bytes) -> str:
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     return pytesseract.image_to_string(img)
@@ -251,9 +226,7 @@ def extract_images_from_pdf(fileobj) -> List[bytes]:
         blobs.append(buf.getvalue())
     return blobs
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  FastAPI setup
-# ─────────────────────────────────────────────────────────────────────────────
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -262,22 +235,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Endpoint
-# ─────────────────────────────────────────────────────────────────────────────
+
 @app.post("/analyze/")
 async def analyze(
     file: UploadFile = File(...),
-    model: str = Form("bert"),        # kept for future (e.g., 'gemini')
-    mode: Optional[str] = Form(None), # not used right now
+    model: str = Form("bert"),        
+    mode: Optional[str] = Form(None),
 ):
-    # 1. convert upload → list[bytes]
+    
     if file.filename.lower().endswith(".pdf"):
         image_blobs = extract_images_from_pdf(file.file)
     else:
         image_blobs = [await file.read()]
 
-    # 2. run classification over every blob
+   
     detected: Set[Tuple[str, str]] = set()
     for blob in image_blobs:
         text = ocr_text_from_image(blob)
@@ -286,7 +257,7 @@ async def analyze(
             if d != "Unknown":
                 detected.add((d, severity))
 
-    # 3. build response
+    
     resolutions = []
     for disease, severity in detected:
         key = disease.lower()
