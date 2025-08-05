@@ -11,6 +11,8 @@ from disease_links import diseases
 # Set up Tesseract based on the operating system
 if platform.system() == "Darwin":  # <- this is macOS!
     pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'  
+elif platform.system() == "Windows": 
+    pytesseract.pytesseract.tesseract_cmd = 'C:\Program Files\Tesseract-OCR\tesseract.exe'
 else:
     st.error("Unsupported OS for Tesseract. Please configure manually.")
 
