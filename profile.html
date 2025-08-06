@@ -1,92 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Profile - CTRL + ALT + HEAL</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-[#F7F8F9] min-h-screen">
+<body class="bg-[#F7F8F9] text-gray-800 min-h-screen">
+
   <!-- Navbar -->
-  <nav class="bg-white shadow px-6 py-4 mb-6">
+  <nav class="bg-white border border-gray-200 px-6 py-4 mb-6">
     <div class="container mx-auto flex justify-between items-center">
-      <a href="index.html" class="text-xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
       <ul class="flex space-x-6 text-sm font-medium text-gray-700">
         <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
-        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
-        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Document Analyzer</a></li>
+        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
         <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+        <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
+        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
       </ul>
     </div>
   </nav>
 
-  <!-- Profile Section -->
-  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-    <div class="flex flex-col md:flex-row items-start gap-6">
-      <div class="flex flex-col items-center">
-        <div class="w-40 h-40 rounded-full bg-gray-300 mb-4"></div>
-        <button class="bg-[#A4C3B2] text-white px-4 py-2 rounded hover:bg-[#92B4A7]">Edit Profile</button>
-      </div>
-      <div class="flex-1 space-y-4">
-        <p><strong>Name:</strong> <span id="userName">Jamie Reynolds</span></p>
-        <p><strong>DOB:</strong> <span id="userDOB">1985-08-12</span></p>
-        <p><strong>Health Goals:</strong> Lower cholesterol, better sleep, less fatigue</p>
+  <div class="container mx-auto px-6">
+    <!-- VIEW MODE -->
+    <div id="profileViewSection">
+      <div class="flex items-start space-x-6 mb-10">
+        <!-- Avatar & Edit Button -->
+        <div class="flex flex-col items-center">
+          <div class="w-32 h-32 bg-gray-300 rounded-full"></div>
+          <button id="editProfileBtn" class="mt-2 bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition">
+            Edit Profile
+          </button>
+        </div>
+
+        <!-- User Info -->
+        <div>
+          <h1 class="text-3xl font-semibold text-gray-800 mb-4">Your Profile</h1>
+          <p class="text-gray-700 mb-2">Name: <span id="userName" class="font-medium"></span></p>
+          <p class="text-gray-700 mb-2">DOB: <span id="userDOB" class="font-medium"></span></p>
+          <p class="text-gray-700 mb-2">Big Things We Should Fix: <span id="userFix" class="font-medium"></span></p>
+          <p class="text-gray-700 mb-6">Health Goals: <span id="userGoals" class="font-medium"></span></p>
+        </div>
       </div>
     </div>
 
+    <!-- EDIT MODE -->
+    <div id="profileEditSection" class="hidden mb-10">
+      <div class="flex flex-col sm:flex-row items-start space-x-6">
+        <!-- Avatar Placeholder -->
+        <div class="flex flex-col items-center mb-4 sm:mb-0">
+          <div class="w-32 h-32 bg-gray-300 rounded-full"></div>
+        </div>
+        <!-- Edit Form -->
+        <div class="flex-1">
+          <h1 class="text-3xl font-semibold text-gray-800 mb-4">Edit Profile</h1>
+          <div class="space-y-4">
+            <div>
+              <label for="inputName" class="block text-sm font-medium text-gray-600">Name</label>
+              <input type="text" id="inputName" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none" />
+            </div>
+            <div>
+              <label for="inputDOB" class="block text-sm font-medium text-gray-600">Date of Birth</label>
+              <input type="date" id="inputDOB" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none" />
+            </div>
+            <div>
+              <label for="inputFix" class="block text-sm font-medium text-gray-600">Big Things We Should Fix</label>
+              <textarea id="inputFix" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"></textarea>
+            </div>
+            <div>
+              <label for="inputGoals" class="block text-sm font-medium text-gray-600">Health Goals</label>
+              <textarea id="inputGoals" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"></textarea>
+            </div>
+          </div>
+          <div class="flex space-x-2 mt-4">
+            <button id="saveProfileBtn" class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition">Save</button>
+            <button id="cancelProfileBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
     <div class="mt-10">
-      <h2 class="text-lg font-semibold mb-2">Big Things We Should Fix:</h2>
-      <div class="p-4 border border-gray-300 rounded bg-gray-50 text-sm text-gray-700">
-        - Inconsistent sleep<br>
-        - High stress levels<br>
-        - Fluctuating blood pressure
+      <!-- Card Wrapper -->
+      <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Health Progress</h2>
+
+        <!-- Controls Row -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <!-- Date & Score Inputs -->
+          <div class="flex flex-1 gap-2">
+            <input type="date" id="entryDate" class="flex-1 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none" />
+            <input type="number" id="entryScore" min="0" max="100" placeholder="Score" class="w-24 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none" />
+          </div>
+          <!-- Buttons -->
+          <div class="flex gap-2">
+            <button id="addEntryBtn" class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition">Add Entry</button>
+            <button id="resetChartBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Reset Chart</button>
+          </div>
+        </div>
+
+        <!-- Chart Canvas -->
+        <div class="overflow-x-auto">
+          <canvas id="progressChart" class="w-full h-64"></canvas>
+        </div>
       </div>
-    </div>
-
-    <!-- Chart -->
-    <div class="mt-10">
-      <h2 class="text-lg font-semibold mb-2">YOUR BIG THINGS IMPROVEMENT</h2>
-      <canvas id="progressChart" class="mb-6"></canvas>
-    </div>
-
-    <!-- Quotes -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-      <div class="p-4 bg-[#E4EFE7] text-gray-800 rounded shadow text-sm">"You don’t need to be perfect, just consistent."</div>
-      <div class="p-4 bg-[#E4EFE7] text-gray-800 rounded shadow text-sm">"Small steps every day lead to big changes."</div>
-      <div class="p-4 bg-[#E4EFE7] text-gray-800 rounded shadow text-sm">"Your health is your story — own the next chapter."</div>
     </div>
   </div>
 
   <script>
-    // Populate user data if stored
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('userName').textContent = localStorage.getItem('userName') || 'Jamie Reynolds';
-      document.getElementById('userDOB').textContent = localStorage.getItem('userDOB') || '1985-08-12';
-    });
+    // Storage helpers
+    function loadProgressData() {
+      return JSON.parse(localStorage.getItem('progressData') || '[]');
+    }
+    function saveProgressData(data) {
+      localStorage.setItem('progressData', JSON.stringify(data));
+    }
+    function resetProgressData() {
+      localStorage.removeItem('progressData');
+    }
 
-    // Render line graph
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        datasets: [{
+    document.addEventListener('DOMContentLoaded', () => {
+      // Profile View Populate
+      document.getElementById('userName').textContent = localStorage.getItem('userName') || 'name';
+      document.getElementById('userDOB').textContent = localStorage.getItem('userDOB') || 'DOB';
+      document.getElementById('userFix').textContent = localStorage.getItem('userFix') || 'None set';
+      document.getElementById('userGoals').textContent = localStorage.getItem('userGoals') || 'None set';
+
+      // Profile edit/view toggle logic...
+      const profileView = document.getElementById('profileViewSection');
+      const profileEdit = document.getElementById('profileEditSection');
+      const editBtn = document.getElementById('editProfileBtn');
+      const saveBtn = document.getElementById('saveProfileBtn');
+      const cancelBtn = document.getElementById('cancelProfileBtn');
+      const inputName = document.getElementById('inputName');
+      const inputDOB = document.getElementById('inputDOB');
+      const inputFix = document.getElementById('inputFix');
+      const inputGoals = document.getElementById('inputGoals');
+
+      editBtn.addEventListener('click', () => {
+        inputName.value = localStorage.getItem('userName') || '';
+        inputDOB.value = localStorage.getItem('userDOB') || '';
+        inputFix.value = localStorage.getItem('userFix') || '';
+        inputGoals.value = localStorage.getItem('userGoals') || '';
+        profileView.classList.add('hidden');
+        profileEdit.classList.remove('hidden');
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        profileEdit.classList.add('hidden');
+        profileView.classList.remove('hidden');
+      });
+
+      saveBtn.addEventListener('click', () => {
+        const nameVal = inputName.value.trim();
+        const dobVal = inputDOB.value;
+        const fixVal = inputFix.value.trim();
+        const goalsVal = inputGoals.value.trim();
+        localStorage.setItem('userName', nameVal);
+        localStorage.setItem('userDOB', dobVal);
+        localStorage.setItem('userFix', fixVal);
+        localStorage.setItem('userGoals', goalsVal);
+        document.getElementById('userName').textContent = nameVal || 'Name';
+        document.getElementById('userDOB').textContent = dobVal || 'DOB';
+        document.getElementById('userFix').textContent = fixVal || 'None set';
+        document.getElementById('userGoals').textContent = goalsVal || 'None set';
+        profileEdit.classList.add('hidden');
+        profileView.classList.remove('hidden');
+      });
+
+      // Chart.js Logic (unchanged)
+      const stored = loadProgressData();
+      const labels = stored.map(e => e.date);
+      const dataPoints = stored.map(e => e.score);
+      const ctx = document.getElementById('progressChart').getContext('2d');
+      const progressChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets: [{
           label: 'Health Score',
-          data: [60, 65, 72, 80],
+          data: dataPoints,
           borderColor: '#6B9080',
-          backgroundColor: '#A4C3B2',
+          backgroundColor: 'rgba(164,195,178,0.4)',
           fill: true,
-          tension: 0.4,
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100
-          }
-        }
-      }
+          tension: 0.4
+        }]},
+        options: { scales: { y: { beginAtZero: true, max: 100 } } }
+      });
+
+      document.getElementById('addEntryBtn').addEventListener('click', () => {
+        const date = document.getElementById('entryDate').value;
+        const score = parseInt(document.getElementById('entryScore').value, 10);
+        if (!date || isNaN(score)) return alert('Please select a date and enter a valid score.');
+        stored.push({ date, score });
+        saveProgressData(stored);
+        progressChart.data.labels.push(date);
+        progressChart.data.datasets[0].data.push(score);
+        progressChart.update();
+        document.getElementById('entryDate').value = '';
+        document.getElementById('entryScore').value = '';
+      });
+
+      document.getElementById('resetChartBtn').addEventListener('click', () => {
+        if (!confirm('Are you sure you want to clear all progress data?')) return;
+        resetProgressData();
+        progressChart.data.labels = [];
+        progressChart.data.datasets[0].data = [];
+        progressChart.update();
+      });
     });
   </script>
 </body>
