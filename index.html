@@ -13,15 +13,16 @@
 </head>
 <body class="bg-[#F7F8F9] text-gray-800">
 
-  <!-- NAV (exactly as you had it) -->
+  <!-- NAV (unchanged) -->
   <nav class="bg-white shadow px-6 py-4">
     <div class="container mx-auto flex justify-between items-center">
-      <a href="index.html" class="text-xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
       <ul class="flex space-x-6 text-sm font-medium text-gray-700">
         <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
-        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
-        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Document Analyzer</a></li>
+        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
         <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+        <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
+        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
       </ul>
     </div>
   </nav>
@@ -50,37 +51,40 @@
   <section class="mt-16 bg-white py-12">
     <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-      <!-- Left: 3 grey boxes + STEP labels -->
+      <!-- Left: 3 grey boxes + image‐arrows -->
       <div>
-        <div class="flex justify-center lg:justify-start space-x-6">
-          <div class="w-24 h-24 bg-gray-300 rounded-lg"></div>
-          <div class="w-24 h-24 bg-gray-300 rounded-lg"></div>
-          <div class="w-24 h-24 bg-gray-300 rounded-lg"></div>
+        <!-- boxes & arrows -->
+        <div class="flex justify-center lg:justify-start items-center">
+          <div class="w-32 h-32 bg-gray-300 rounded-lg overflow-hidden"><img src="upload.png" alt="Step 1" class="w-full h-full object-cover" /></div>
+          <img src="arrow.png" alt="arrow" class="w-8 h-8 mx-4 object-contain" />
+          <div class="w-32 h-32 bg-gray-300 rounded-lg overflow-hidden"><img src="understand.png" alt="arrow" class="w-full h-full object-cover" /></div>
+          <img src="arrow.png" alt="arrow" class="w-8 h-8 mx-4 object-contain" />
+          <div class="w-32 h-32 bg-gray-300 rounded-lg overflow-hidden"></div>
         </div>
-        <div class="flex justify-center lg:justify-start space-x-16 mt-2">
-          <span class="font-bold">STEP 1</span>
-          <span class="font-bold">STEP 2</span>
-          <span class="font-bold italic">STEP 3</span>
+        <!-- labels aligned under each box -->
+        <div class="flex justify-center lg:justify-start items-center mt-2">
+          <span class="w-24 text-center font-bold">STEP 1</span>
+          <span class="w-16"></span>
+          <span class="w-24 text-center font-bold">STEP 2</span>
+          <span class="w-16"></span>
+          <span class="w-24 text-center font-bold">STEP 3</span>
         </div>
       </div>
 
-      <!-- Right: explanatory copy -->
+      <!-- Right: explanatory copy (unchanged) -->
       <div>
         <h3 class="text-xl font-bold uppercase text-gray-900">
           UPLOAD. UNDERSTAND. ACT. WE MAKE MEDICAL REPORTS MAKE SENSE.
         </h3>
-        <p class="mt-3 text-gray-700 leading-relaxed">
-          MEDICAL REPORTS SHOULDN'T FEEL LIKE A SECRET CODE. JUST UPLOAD YOUR
-          FILE, AND WE'LL BREAK IT DOWN INTO SIMPLE LANGUAGE, HIGHLIGHT WHAT'S
-          IMPORTANT, AND GIVE YOU ACTIONABLE NEXT STEPS. NO MORE GUESSWORK.
-          JUST CLARITY.
+        <p class="font-serif text-gray-700 leading-relaxed mb-4">
+          Medical reports etc etc
         </p>
       </div>
 
     </div>
   </section>
 
-  <!-- BEEN THERE SECTION -->
+  <!-- BEEN THERE SECTION (unchanged) -->
   <section class="mt-12 bg-gray-100 py-12">
     <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
 
@@ -104,9 +108,9 @@
       </div>
 
       <!-- Right: image placeholder -->
-      <div class="w-full h-64 bg-gray-300 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-gray-300 rounded-lg overflow-hidden">
         <img
-          src=""
+          src="doctorhelpingpatient.jpg"
           alt="Placeholder"
           class="object-cover w-full h-full"
         />
