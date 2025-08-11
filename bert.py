@@ -10,35 +10,94 @@ import spacy
 from negspacy.negation import Negex
 from fuzzywuzzy import fuzz
 from spacy.util import filter_spans
+from spacy.matcher import Matcher
+import pandas as pd
+import re
 
+non_negated_diseases = []
 
 if platform.system() == "Darwin": 
     pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'  
 elif platform.system() == "Windows":
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
+df = pd.read_csv("measurement.csv")
+df.columns = df.columns.str.lower()
+df['measurement'] = df['measurement'].str.lower()
+
+def extract_number(text):
+    match = re.search(r'(\d+\.?\d*)', text)
+    return float(match.group(1)) if match else None
+
+def analyze_measurements(text, df):
+    results = []
+    final_numbers = []
+    for measurement in df["measurement"].unique():
+        pattern = rf"{measurement}[^0-9]*([\d\.]+)"
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        for match in matches:
+            
+            value = float(match)
+            for _, row in df[df["measurement"].str.lower() == measurement.lower()].iterrows():
+                if row["low"] <= value <= row["high"]:
+                    results.append({
+                        "Condition" : row['condition'],
+                        "Measurement": measurement,
+                        "Value": value,
+                        "severity": row["severity"],
+                        "Range": f"{row['low']} to {row['high']} {row['unit']}"
+                    })
+    
+    print (results)
+
+    # Run the analysis
+    for res in results:
+        final_numbers.append(f"Condition in concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
+            f"(Range: {res['Range']})")
+    
+    print("analyze measurements res:", final_numbers)
+    return final_numbers
+
 nlp = spacy.load("en_core_web_sm")
 nlp.add_pipe("negex", config={"ent_types": ["DISEASE"]}, last=True)
+matcher = Matcher(nlp.vocab)
 
 clinical_bert_model = BertForSequenceClassification.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
 clinical_bert_tokenizer = BertTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
 
+past_patterns = [
+    [{"LOWER": "clinical"}, {"LOWER": "history:"}],
+    [{"LOWER": "past"}, {"LOWER": "medical:"}],
+    [{"LOWER": "medical"}, {"LOWER": "history:"}],
+    [{"LOWER": "history"}, {"LOWER": "of"}],
+    [{"LOWER": "prior"}],
+    [{"LOWER": "previous"}],
+    [{"LOWER": "formerly"}],
+    [{"LOWER": "resolved"}],
+    [{"LOWER": "used"}, {"LOWER": "to"}, {"LOWER": "have"}],
+    [{"LOWER": "was"}, {"LEMMA": "diagnose"}],
+]
 
 def analyze_with_clinicalBert(extracted_text: str) -> str:
     num_chars, num_words, description, medical_content_found, detected_diseases = analyze_text_and_describe(extracted_text)
 
-    non_negated_diseases = extract_non_negated_keywords(extracted_text)
-        
+    non_negated_diseases = extract_non_negated_keywords(extracted_text) + analyze_measurements(extracted_text)
+    detected_measures = analyze_measurements(extracted_text, df)
+    
+    
     severity_label, _ = classify_disease_and_severity(extracted_text)
     if non_negated_diseases:
         response = f"Detected medical content: {description}. "
         response += f"Severity: {severity_label}. "
         response += "Detected diseases (non-negated): " + ", ".join(non_negated_diseases) + ". "
+    if detected_measures:
+        detected_measurements = f"Detected measurements: {detected_measures}"
     else:
         response = "No significant medical content detected."
     
     
-    return response
+    return response, detected_measurements
+
 
 def extract_text_from_image(image):
     if len(image.shape) == 2:   
@@ -49,6 +108,9 @@ def extract_text_from_image(image):
         raise ValueError("Unsupported image format. Please provide a valid image.")
     text = pytesseract.image_to_string(gray_img)
     return text
+
+past_disease_terms = []
+matcher.add("PAST_CONTEXT", past_patterns)
 
 def extract_non_negated_keywords(text, threshold=80):
     doc = nlp(text)
@@ -63,7 +125,6 @@ def extract_non_negated_keywords(text, threshold=80):
             disease_term_lower = disease_term.lower()
             match_score = fuzz.partial_ratio(disease_term_lower, sent_text)
             print(f"Trying to match '{disease_term_lower}' in sentence: '{sent_text.strip()}' — Match score: {match_score}")
-
 
             if match_score >= threshold:
                 start = sent_text.find(disease_term_lower)
@@ -90,6 +151,14 @@ def extract_non_negated_keywords(text, threshold=80):
 
     return list(found_diseases)
 
+def detect_past_phrases(text):
+    doc = nlp(text)
+    matches = matcher(doc)
+    results = []
+    for match_id, start, end in matches:
+        span = doc[start:end]
+        results.append(span.text)
+    return results
 
 # def extract_non_negated_keywords(text, threshold=70):
 #     global alert
@@ -325,20 +394,18 @@ def classify_disease_and_severity(text):
 # Links for diseases
 if __name__ == '__main__':
     print("ClinicalBERT model and tokenizer loaded successfully.")
-    sample_text = """
-    Patient Name: Carol Davis
-    Age: 55
-    Gender: Female
-    Clinical History:
-    Recent biopsy confirms breast cancer (invasive ductal carcinoma).
-    No lymph node involvement. PET scan negative for metastasis.
-    Impression:
-    - Early-stage Breast Cancer
-    Recommendations:
-    - Surgery (lumpectomy recommended)
-    - Oncology consultation
-    - Post-surgical chemotherapy evaluation
-    """
-    print("Detected (non-negated):", extract_non_negated_keywords(sample_text))
-
-    
+    sample_text = """Patient Name: Jane Doe
+    Age: 62 Date of Visit: 2025-08-08
+    Physician: Dr. Alan Smith
+    Clinical Notes:
+    1. The patient denies having cancer at present.
+    However, her family history includes colon cancer in her father.
+    2. The patient has a history of type 2 diabetes and is currently taking metformin.
+    Latest HBA1C result: 7.2% (previously 6.9%).
+    3. Fasting glucose measured today was 145 mg/dL, which is above the normal range of 70–99
+    mg/dL.
+    This may indicate poor glycemic control.
+    4. The patient reported no chest pain or signs of heart disease.
+    5. Overall, there is no evidence of tumor recurrence at this time."""
+    print(detect_past_phrases(sample_text))
+    print(analyze_measurements(sample_text, df))
