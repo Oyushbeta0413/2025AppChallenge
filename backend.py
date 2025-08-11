@@ -7,11 +7,17 @@ from PIL import Image
 import io
 import fitz  
 import traceback
+import pandas as pd
+import re
 
-from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords
+from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords, analyze_measurements
 from disease_links import diseases as disease_links
 from disease_steps import disease_next_steps
 from disease_support import disease_doctor_specialty, disease_home_care
+
+df = pd.read_csv("measurement.csv")
+df.columns = df.columns.str.lower()
+df['measurement'] = df['measurement'].str.lower()
 
 app = FastAPI()
 
@@ -38,9 +44,45 @@ def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
         images.append(buf.getvalue())
     return images
 
+def clean_ocr_text(text: str) -> str:
+    text = text.replace("\x0c", " ")       # remove form feed
+    text = text.replace("\u00a0", " ")     # replace NBSP with space
+    text = re.sub(r'(\d)\s*\.\s*(\d)', r'\1.\2', text)  # fix split decimals
+    text = re.sub(r'\s+', ' ', text)       # collapse multiple spaces/newlines
+    return text.strip()
+
+
+
 def ocr_text_from_image(image_bytes: bytes) -> str:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     return pytesseract.image_to_string(image)
+
+# def analyze_measurements(text, df):
+#     results = []
+#     final_numbers = []
+#     for measurement in df["measurement"].unique():
+#         pattern = rf"{measurement}[^0-9]*([\d\.]+)"
+#         matches = re.findall(pattern, text, re.IGNORECASE)
+#         for match in matches:
+#             value = float(match)
+#             for _, row in df[df["measurement"].str.lower() == measurement.lower()].iterrows():
+#                 if row["low"] <= value <= row["high"]:
+#                     results.append({
+#                         "Condition" : row['condition'],
+#                         "Measurement": measurement,
+#                         "Value": value,
+#                         "severity": row["severity"],
+#                         "Range": f"{row['low']} to {row['high']} {row['unit']}"
+#                     })
+
+#     # Run the analysis
+#     for res in results:
+#         final_numbers.append(f"Condition in concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
+#             f"(Range: {res['Range']})")
+    
+#     print("analyze measurements res:", final_numbers)
+#     return final_numbers
+
 
 @app.post("/analyze/")
 async def analyze(
@@ -65,10 +107,10 @@ async def analyze(
     for img_bytes in image_bytes_list:
         ocr_text = ocr_text_from_image(img_bytes)
         ocr_full += ocr_text + "\n\n"
+        ocr_full = clean_ocr_text(ocr_full)
 
         if model.lower() == "gemini":
             return {"message": "Gemini model not available; please use BERT model."}
-
 
     found_diseases = extract_non_negated_keywords(ocr_text)
 
@@ -80,6 +122,7 @@ async def analyze(
     print("Detected diseases:", found_diseases)
 
     resolution = []
+    detected_ranges = []
     for disease, severity in detected_diseases:
         link = disease_links.get(disease.lower(), "https://www.webmd.com/")
         next_steps = disease_next_steps.get(disease.lower(), ["Consult a doctor."])
@@ -94,11 +137,15 @@ async def analyze(
             "home_care_guidance": home_care,
             "info_link": link
     })
-
+    
+    ranges = analyze_measurements(ocr_full, df)
+    print(analyze_measurements(ocr_full, df))
+    # print ("Ranges is being printed", ranges)
 
     return {
         "ocr_text": ocr_full.strip(),
-        "resolutions": resolution
+        "resolutions": resolution,
+        "detected measurements": ranges
     }
 
 class TextRequest(BaseModel):
@@ -119,4 +166,3 @@ def analyze_text(text):
         "extracted_text": text,
         "summary": f"Detected Disease: {disease}, Severity: {severity}"
     }
-
