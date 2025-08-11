@@ -1,123 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CTRL + ALT + HEAL</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css"
-    rel="stylesheet"
-  />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
-</head>
-<body class="bg-[#F7F8F9] text-gray-800">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTRL + ALT + HEAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- NAV (unchanged) -->
-  <nav class="bg-white shadow px-6 py-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
-      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
-        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
-        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
-        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
-        <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
-        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
-      </ul>
-    </div>
-  </nav>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+  </head>
+  <body class="bg-[#F7F8F9] text-gray-800">
+    <!-- NAV (unchanged) -->
+    <nav class="bg-white shadow px-6 py-4">
+      <div class="container mx-auto flex justify-between items-center">
+        <a href="index.html" class="text-2xl font-bold text-[#6B9080]"
+          >CTRL + ALT + HEAL</a
+        >
+        <ul class="flex space-x-6 text-sm font-medium text-gray-700">
+          <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+          <li>
+            <a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a>
+          </li>
+          <li>
+            <a href="profile.html" class="hover:text-[#6B9080]">Profile</a>
+          </li>
+          <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
+          <li>
+            <a href="about.html" class="hover:text-[#6B9080]">About Us</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
 
-  <!-- HERO (unchanged) -->
-  <section class="py-16 px-6 text-center bg-[#F0F2F3]">
-    <h1 class="text-4xl md:text-5xl font-extrabold uppercase text-[#1F2937] mb-4">
-      CTRL + ALT + HEAL
-    </h1>
-    <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-4">
-      From medical chaos to clarity. Upload your report, get real answers — fast.
-    </p>
-    <p class="text-sm text-gray-500 mb-6">
-      No stress, no spiraling. Just answers that feel human.
-    </p>
-    <div class="space-y-3 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center">
-      <a href="login.html" class="block w-full sm:w-auto">
-        <button
-          class="w-full sm:w-auto bg-[#A4C3B2] text-white px-6 py-2 rounded hover:bg-[#92B4A7] transition-all"
-        >Sign Up/Login</button>
-      </a>
-    </div>
-  </section>
+    <!-- HERO (unchanged) -->
+    <section
+      class="py-16 px-6 text-center bg-cover bg-center relative min-h-[500px]"
+      style="
+        background-image: url('https://i.pinimg.com/originals/49/29/57/4929571ca9465e280f1fa7e9bd7772aa.gif');
+      "
+    >
+      <!-- Dark translucent overlay -->
+      <div class="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
 
-  <!-- STEPS + DESCRIPTION -->
-  <section class="mt-16 bg-white py-12">
-    <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-
-      <!-- Left: 3 grey boxes + image‐arrows -->
-      <div>
-        <!-- boxes & arrows -->
-        <div class="flex justify-center lg:justify-start items-center">
-          <div class="w-32 h-32 bg-gray-300 rounded-lg overflow-hidden"><img src="upload.png" alt="Step 1" class="w-full h-full object-cover" /></div>
-          <img src="arrow.png" alt="arrow" class="w-8 h-8 mx-4 object-contain" />
-          <div class="w-32 h-32 bg-gray-300 rounded-lg overflow-hidden"><img src="understand.png" alt="arrow" class="w-full h-full object-cover" /></div>
-          <img src="arrow.png" alt="arrow" class="w-8 h-8 mx-4 object-contain" />
-          <div class="w-32 h-32 bg-gray-300 rounded-lg overflow-hidden"></div>
+      <!-- Text content wrapper -->
+      <div class="relative z-20 max-w-3xl mx-auto px-4">
+        <h1
+          class="text-4xl md:text-5xl font-extrabold uppercase text-white mb-4"
+        >
+          CTRL + ALT + HEAL
+        </h1>
+        <p class="text-lg text-gray-200 max-w-2xl mx-auto mb-4">
+          From medical chaos to clarity. Upload your report, get real answers —
+          fast.
+        </p>
+        <p class="text-sm text-gray-300 mb-6">
+          No stress, no spiraling. Just answers that feel human.
+        </p>
+        <div
+          class="space-y-3 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center"
+        >
+          <a href="login.html" class="block w-full sm:w-auto">
+            <button
+              class="w-full sm:w-auto bg-[#A4C3B2] text-white px-6 py-2 rounded hover:bg-[#92B4A7] transition-all"
+            >
+              Sign Up/Login
+            </button>
+          </a>
         </div>
-        <!-- labels aligned under each box -->
-        <div class="flex justify-center lg:justify-start items-center mt-2">
-          <span class="w-24 text-center font-bold">STEP 1</span>
-          <span class="w-16"></span>
-          <span class="w-24 text-center font-bold">STEP 2</span>
-          <span class="w-16"></span>
-          <span class="w-24 text-center font-bold">STEP 3</span>
+      </div>
+    </section>
+
+    <!-- STEPS + DESCRIPTION -->
+    <section class="mt-16 bg-white py-12">
+      <div
+        class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
+      >
+        <!-- Left: 3 grey boxes + image‐arrows -->
+        <div>
+          <!-- boxes & arrows -->
+          <div class="flex justify-center lg:justify-start items-center gap-4">
+            <div class="w-32 h-32 rounded-lg overflow-hidden">
+              <img
+                src="upload.png"
+                alt="UPLOAD"
+                class="w-full h-full object-cover"
+              />
+            </div>
+
+            <div class="w-32 h-32 rounded-lg overflow-hidden">
+              <img
+                src="understand.png"
+                alt="UNDERSTAND"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="w-32 h-32 rounded-lg overflow-hidden">
+              <img src="act.png" alt="ACT" class="w-full h-full object-cover" />
+            </div>
+          </div>
+          <!-- labels aligned under each box -->
+          <div class="flex justify-center lg:justify-start items-center mt-2">
+            <span class="w-24 text-center font-bold">STEP 1</span>
+            <span class="w-16"></span>
+            <span class="w-24 text-center font-bold">STEP 2</span>
+            <span class="w-16"></span>
+            <span class="w-24 text-center font-bold">STEP 3</span>
+          </div>
+        </div>
+
+        <!-- Right: explanatory copy (unchanged) -->
+        <div>
+          <h3 class="text-xl font-bold uppercase text-gray-900">
+            UPLOAD. UNDERSTAND. ACT. WE MAKE MEDICAL REPORTS MAKE SENSE.
+          </h3>
+          <p class="font-serif text-gray-700 leading-relaxed mb-4">
+            Medical Reports shouldn't feel like a secret code. Jusr upload your
+            file, and we'll break it down simple language, highlight what's
+            important, and give you actionable next steps. No more Guesswork.
+            Just Clarity.
+          </p>
         </div>
       </div>
+    </section>
 
-      <!-- Right: explanatory copy (unchanged) -->
-      <div>
-        <h3 class="text-xl font-bold uppercase text-gray-900">
-          UPLOAD. UNDERSTAND. ACT. WE MAKE MEDICAL REPORTS MAKE SENSE.
-        </h3>
-        <p class="font-serif text-gray-700 leading-relaxed mb-4">
-          Medical reports etc etc
-        </p>
+    <!-- BEEN THERE SECTION (unchanged) -->
+    <section class="mt-12 bg-gray-100 py-12">
+      <div
+        class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+      >
+        <!-- Left: copy -->
+        <div>
+          <h3 class="text-2xl font-serif italic text-gray-800 mb-4">
+            Been There.
+          </h3>
+          <p class="font-serif text-gray-700 leading-relaxed mb-4">
+            That’s exactly why we built this app — to stop the health spiral
+            before it even starts. We know what it’s like to open a medical
+            report and immediately feel overwhelmed. Weird abbreviations.
+            Numbers with no context. Pages that feel like they were written for
+            robots, not real people. It’s confusing, it’s stressful, and it’s
+            usually a late‐night Google rabbit hole that somehow ends in you
+            thinking you’ve got 3 rare conditions and a 2-day countdown.
+          </p>
+          <p class="font-serif text-gray-700 leading-relaxed">
+            So we made something better. Just upload your report. We’ll break it
+            down into plain, human language. We’ll highlight what actually
+            matters, skip the jargon, and explain everything in a way that
+            actually makes sense. Most importantly, we’ll give you real,
+            practical steps — no guessing, no spiraling. You don’t need a
+            medical degree to understand your own health. You just need the
+            right guide. That’s us.
+          </p>
+        </div>
+
+        <!-- Right: image placeholder -->
+        <div class="w-full h-full bg-gray-300 rounded-lg overflow-hidden">
+          <img
+            src="https://i.pinimg.com/originals/44/c7/c1/44c7c1f3fbd68b2151c37af5f08198f1.gif"
+            alt="Wow!"
+            class="object-cover w-full h-full"
+          />
+        </div>
       </div>
-
-    </div>
-  </section>
-
-  <!-- BEEN THERE SECTION (unchanged) -->
-  <section class="mt-12 bg-gray-100 py-12">
-    <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-
-      <!-- Left: copy -->
-      <div>
-        <h3 class="text-2xl font-serif italic text-gray-800 mb-4">Been There.</h3>
-        <p class="font-serif text-gray-700 leading-relaxed mb-4">
-          That’s exactly why we built this app — to stop the health spiral before it even starts.
-          We know what it’s like to open a medical report and immediately feel overwhelmed. Weird
-          abbreviations. Numbers with no context. Pages that feel like they were written for robots,
-          not real people. It’s confusing, it’s stressful, and it’s usually a late‐night Google rabbit
-          hole that somehow ends in you thinking you’ve got 3 rare conditions and a 2-day countdown.
-        </p>
-        <p class="font-serif text-gray-700 leading-relaxed">
-          So we made something better. Just upload your report. We’ll break it down into plain, human
-          language. We’ll highlight what actually matters, skip the jargon, and explain everything in
-          a way that actually makes sense. Most importantly, we’ll give you real, practical steps —
-          no guessing, no spiraling. You don’t need a medical degree to understand your own health.
-          You just need the right guide. That’s us.
-        </p>
-      </div>
-
-      <!-- Right: image placeholder -->
-      <div class="w-full h-full bg-gray-300 rounded-lg overflow-hidden">
-        <img
-          src="doctorhelpingpatient.jpg"
-          alt="Placeholder"
-          class="object-cover w-full h-full"
-        />
-      </div>
-
-    </div>
-  </section>
-
-</body>
+    </section>
+  </body>
 </html>
