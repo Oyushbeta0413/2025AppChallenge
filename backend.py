@@ -10,7 +10,7 @@ import traceback
 import pandas as pd
 import re
 
-from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords, analyze_measurements
+from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords, analyze_measurements, detect_past_diseases
 from disease_links import diseases as disease_links
 from disease_steps import disease_next_steps
 from disease_support import disease_doctor_specialty, disease_home_care
@@ -57,33 +57,6 @@ def ocr_text_from_image(image_bytes: bytes) -> str:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     return pytesseract.image_to_string(image)
 
-# def analyze_measurements(text, df):
-#     results = []
-#     final_numbers = []
-#     for measurement in df["measurement"].unique():
-#         pattern = rf"{measurement}[^0-9]*([\d\.]+)"
-#         matches = re.findall(pattern, text, re.IGNORECASE)
-#         for match in matches:
-#             value = float(match)
-#             for _, row in df[df["measurement"].str.lower() == measurement.lower()].iterrows():
-#                 if row["low"] <= value <= row["high"]:
-#                     results.append({
-#                         "Condition" : row['condition'],
-#                         "Measurement": measurement,
-#                         "Value": value,
-#                         "severity": row["severity"],
-#                         "Range": f"{row['low']} to {row['high']} {row['unit']}"
-#                     })
-
-#     # Run the analysis
-#     for res in results:
-#         final_numbers.append(f"Condition in concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
-#             f"(Range: {res['Range']})")
-    
-#     print("analyze measurements res:", final_numbers)
-#     return final_numbers
-
-
 @app.post("/analyze/")
 async def analyze(
     file: UploadFile = File(...),
@@ -108,15 +81,23 @@ async def analyze(
         ocr_text = ocr_text_from_image(img_bytes)
         ocr_full += ocr_text + "\n\n"
         ocr_full = clean_ocr_text(ocr_full)
-
+        if len(ocr_full) >= 2000:
+            return {"message": f"The length of the uploaded medical report is too long. Our limit is 2000 characters and your report is {len(ocr_full)} long. This may cause inaccuracies in our readings. Please shorten the report"}
+        
         if model.lower() == "gemini":
             return {"message": "Gemini model not available; please use BERT model."}
 
-    found_diseases = extract_non_negated_keywords(ocr_text)
+    found_diseases = extract_non_negated_keywords(ocr_full)
+    past = detect_past_diseases(ocr_full)
 
     for disease in found_diseases:
-        severity, _ = classify_disease_and_severity(ocr_text)
-        detected_diseases.add((disease, severity))
+        if disease in past:    
+            severity, _ = classify_disease_and_severity(ocr_full)
+            detected_diseases.add(((f"{disease}(Detected as a past condition)"), severity))
+        else:
+            severity, _ = classify_disease_and_severity(ocr_full)
+            detected_diseases.add((disease, severity))
+        
         
     print("OCR TEXT:", ocr_text)
     print("Detected diseases:", found_diseases)
@@ -130,7 +111,7 @@ async def analyze(
         home_care = disease_home_care.get(disease.lower(), [])
 
         resolution.append({
-            "findings": disease,
+            "findings": disease.upper(),
             "severity": severity,
             "recommendations": next_steps,
             "treatment_suggestions": f"Consult a specialist: {specialist}",
@@ -138,14 +119,16 @@ async def analyze(
             "info_link": link
     })
     
+    print(ocr_full)
     ranges = analyze_measurements(ocr_full, df)
     print(analyze_measurements(ocr_full, df))
     # print ("Ranges is being printed", ranges)
+    historical_med_data = detect_past_diseases(ocr_full)
 
     return {
         "ocr_text": ocr_full.strip(),
-        "resolutions": resolution,
-        "detected measurements": ranges
+        "Detected Anomolies": resolution,
+        "Detected Measurement Values": ranges,
     }
 
 class TextRequest(BaseModel):
