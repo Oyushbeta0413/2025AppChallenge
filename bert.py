@@ -36,7 +36,8 @@ def analyze_measurements(text, df):
         pattern = rf"{measurement}[^0-9]*([\d\.]+)"
         matches = re.findall(pattern, text, re.IGNORECASE)
         for match in matches:
-            
+            if measurement == "hbaic":
+                measurement = "hba1c"
             value = float(match)
             for _, row in df[df["measurement"].str.lower() == measurement.lower()].iterrows():
                 if row["low"] <= value <= row["high"]:
@@ -50,9 +51,8 @@ def analyze_measurements(text, df):
     
     print (results)
 
-    # Run the analysis
     for res in results:
-        final_numbers.append(f"Condition in concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
+        final_numbers.append(f"Condition In Concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
             f"(Range: {res['Range']})")
     
     print("analyze measurements res:", final_numbers)
@@ -75,7 +75,10 @@ past_patterns = [
     [{"LOWER": "formerly"}],
     [{"LOWER": "resolved"}],
     [{"LOWER": "used"}, {"LOWER": "to"}, {"LOWER": "have"}],
-    [{"LOWER": "was"}, {"LEMMA": "diagnose"}],
+    [{"LOWER": "was"}, {"LEMMA": "diagnosed"}],
+    [{"LOWER": "history"},]
+
+    
 ]
 
 def analyze_with_clinicalBert(extracted_text: str) -> str:
@@ -148,54 +151,27 @@ def extract_non_negated_keywords(text, threshold=80):
             for disease_term in diseases:
                 if fuzz.ratio(ent_text, disease_term.lower()) >= threshold:
                     found_diseases.add(disease_term)
-
+    
     return list(found_diseases)
 
-def detect_past_phrases(text):
+def detect_past_diseases(text, threshold=90):
     doc = nlp(text)
     matches = matcher(doc)
-    results = []
+    past_diseases = []
+
     for match_id, start, end in matches:
-        span = doc[start:end]
-        results.append(span.text)
-    return results
+        sentence = doc[start:end].sent
+        sent_tokens = list(sentence)
 
-# def extract_non_negated_keywords(text, threshold=70):
-#     global alert
-#     alert = True
-#     global found_diseases
-#     doc = nlp(text)
-#     lowered_text = text.lower()
-#     found_diseases = set()
+        for i, token in enumerate(sent_tokens):
+            if token.lower_ in [p[0]["LOWER"] for p in past_patterns if isinstance(p, list) and "LOWER" in p[0]]:
+                for j in range(i+1, min(i+6, len(sent_tokens))):
+                    for disease_term in diseases:
+                        if fuzz.partial_ratio(disease_term.lower(), sent_tokens[j].text.lower()) >= threshold:
+                            past_diseases.append(disease_term)
 
-#     for disease_term in diseases.keys():
-#         disease_term_lower = disease_term.lower()
-#         if fuzz.partial_ratio(disease_term_lower, lowered_text) >= threshold:
-#             alert = False
-#             start = lowered_text.find(disease_term_lower)
-#             if start == -1:
-#                 continue
-#             end = start + len(disease_term_lower)
-#             span = doc.char_span(start, end, alignment_mode="expand")
-
-#             if span:
-#                 span.label_ = "DISEASE"
-#                 doc.ents += (span,)
-#                 if not span._.negex:
-#                     found_diseases.add(disease_term)
-#             else:
-#                 negated_phrases = [
-#                     f"no {disease_term_lower}",
-#                     f"denies {disease_term_lower}",
-#                     f"without {disease_term_lower}",
-#                     f"free of {disease_term_lower}",
-#                     f"ruled out {disease_term_lower}",
-#                     f"no signs of {disease_term_lower}"
-#                 ]
-#                 if not any(neg in lowered_text for neg in negated_phrases):
-#                     found_diseases.add(disease_term)
-#     return list(found_diseases)
-
+    return list(set(past_diseases))
+ 
 
 def analyze_text_and_describe(text):
     num_chars = len(text)
@@ -407,5 +383,7 @@ if __name__ == '__main__':
     This may indicate poor glycemic control.
     4. The patient reported no chest pain or signs of heart disease.
     5. Overall, there is no evidence of tumor recurrence at this time."""
-    print(detect_past_phrases(sample_text))
+    print(detect_past_diseases(sample_text, threshold=90))
     print(analyze_measurements(sample_text, df))
+
+    
