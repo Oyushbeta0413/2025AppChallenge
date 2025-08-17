@@ -11,13 +11,23 @@ import os
 import google.generativeai as genai
 import json
 import re
-
+import platform
 from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords
 from disease_links import diseases as disease_links
 from disease_steps import disease_next_steps
 from disease_support import disease_doctor_specialty, disease_home_care
+from api_key import GEMINI_API_KEY
 
 app = FastAPI()
+
+
+if platform.system() == "Darwin": 
+    #pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'  
+    pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'  
+    
+elif platform.system() == "Windows":
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,10 +44,7 @@ app.add_middleware(
 EXTRACTED_TEXT_CACHE: str = ""
 
 try:
-    gemini_api_key = os.environ.get("GEMINI_API_KEY")
-    if not gemini_api_key:
-        raise ValueError("GEMINI_API_KEY environment variable not set.")
-    genai.configure(api_key=gemini_api_key)
+    genai.configure(api_key=GEMINI_API_KEY)
 except Exception as e:
     raise RuntimeError(f"Failed to configure Gemini API: {e}")
 
@@ -145,13 +152,13 @@ async def analyze(
         "resolutions": resolutions
     }
 
-@app.post("/analyze-text")
+"""@app.post("/analyze-text")
 async def analyze_text_endpoint(request: TextRequest):
     try:
         return analyze_text(request.text)
     except Exception as e:
         print("ERROR in /analyze-text:", traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Error analyzing text: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error analyzing text: {str(e)}")"""
 
 @app.post("/chat/", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
@@ -184,3 +191,10 @@ def analyze_text(text):
         "extracted_text": text,
         "summary": f"Detected Disease: {disease}, Severity: {severity}"
     }
+
+
+
+if __name__ == '__main__':
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
