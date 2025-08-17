@@ -81,8 +81,7 @@ async def analyze(
         ocr_text = ocr_text_from_image(img_bytes)
         ocr_full += ocr_text + "\n\n"
         ocr_full = clean_ocr_text(ocr_full)
-        if len(ocr_full) >= 3000:
-            return {"message": f"The length of the uploaded medical report is too long. Our limit is 2000 characters and your report is {len(ocr_full)} long. This may cause inaccuracies in our readings. Please shorten the report"}
+
         
         if model.lower() == "gemini":
             return {"message": "Gemini model not available; please use BERT model."}
