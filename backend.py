@@ -25,7 +25,7 @@ df.columns = df.columns.str.lower()
 df['measurement'] = df['measurement'].str.lower()
 
 app = FastAPI()
-
+EXTRACTED_TEXT_CACHE: str = ""
 system_prompt_chat= """
 *** Role: Medical Guidance Facilitator
 
@@ -147,6 +147,8 @@ async def analyze(
     mode: Optional[str] = Form(None)
 ):
     global resolution
+    global EXTRACTED_TEXT_CACHE
+
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded.")
 
@@ -165,9 +167,13 @@ async def analyze(
         ocr_full += ocr_text + "\n\n"
         ocr_full = clean_ocr_text(ocr_full)
 
+    # Store the OCR text in the cache for the chatbot
+    EXTRACTED_TEXT_CACHE = ocr_full.strip()
+    
         
-        if model.lower() == "gemini":
-            return {"message": "Gemini model not available; please use BERT model."}
+    if model.lower() == "gemini":
+        return {"message": "Gemini model is not fully integrated for analysis in this version. Using BERT for analysis.",
+                "ocr_text": EXTRACTED_TEXT_CACHE}
 
     found_diseases = extract_non_negated_keywords(ocr_full)
     past = detect_past_diseases(ocr_full)
