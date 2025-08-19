@@ -1,118 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login / Signup - CTRL + ALT + HEAL</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase JS SDK -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login / Signup - CTRL + ALT + HEAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --blue: rgb(120, 187, 242);
+        --l-blue: rgb(197, 217, 251);
+        --latte-cream: #ffffff;
+        --red: #ff746c;
+        --l-red: #faa0a0;
+      }
 
-    const firebaseConfig = {
-      apiKey: "",
-      authDomain: "",
-      projectId: "",
-      storageBucket: "",
-      messagingSenderId: "",
-      appId: "",
-      measurementId: ""
-    };
+      body {
+        font-family: "Rubik", sans-serif;
+        background-color: var(--cream);
+        color: #333;
+      }
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+      /* Navbar styles */
+      nav {
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.85);
+        transition: transform 0.3s ease, background-color 0.3s ease,
+          box-shadow 0.3s ease;
+      }
 
-    window.toggleMode = (mode) => {
-      document.getElementById('formTitle').textContent = mode === 'signup' ? 'Sign Up' : 'Log In';
-      document.getElementById('nameGroup').style.display = mode === 'signup' ? 'block' : 'none';
-      document.getElementById('dobGroup').style.display = mode === 'signup' ? 'block' : 'none';
-      document.getElementById('submitBtn').textContent = mode === 'signup' ? 'Sign Up' : 'Log In';
-      document.getElementById('mode').value = mode;
-    };
+      nav.scrolled {
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-5px);
+      }
 
-    window.submitForm = async () => {
-      const mode = document.getElementById('mode').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      try {
-        if (mode === 'signup') {
-          const name = document.getElementById('name').value;
-          const dob = document.getElementById('dob').value;
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-          await setDoc(doc(db, 'users', user.uid), { name, email, dob });
-        } else {
-          await signInWithEmailAndPassword(auth, email, password);
+      nav a {
+        transition: color 0.3s ease, transform 0.2s ease;
+      }
+
+      nav a:hover {
+        color: var(--blue);
+        transform: translateY(-2px);
+      }
+
+      /* Form card animation */
+      @keyframes fadeSlideUp {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
         }
-        window.location.href = 'profile.html';
-      } catch (err) {
-        alert((mode === 'signup' ? 'Sign Up' : 'Log In') + ' error: ' + err.message);
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
-    };
 
-    window.resetPassword = async () => {
-      const email = document.getElementById('email').value;
-      if (!email) return alert('Please enter your email to reset password.');
-      try {
-        await sendPasswordResetEmail(auth, email);
-        alert('Password reset email sent to ' + email);
-      } catch (err) {
-        alert('Error sending password reset: ' + err.message);
+      .fade-slide-up {
+        animation: fadeSlideUp 0.6s ease forwards;
       }
-    };
 
-    document.addEventListener('DOMContentLoaded', () => {
-      toggleMode('login');
-    });
-  </script>
-</head>
-<body class="bg-[#F7F8F9] min-h-screen">
-  <nav class="bg-white shadow px-6 py-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <a href="index.html" class="text-xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
-      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
-        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
-        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
-        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
-        <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
-        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
+      .form-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .form-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #ccc;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(120, 187, 242, 0.3);
+      }
+
+      .btn-primary {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        background-color: var(--blue);
+        color: white;
+        font-weight: 600;
+        transition: background-color 0.3s ease, transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--l-blue);
+        color: #333;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-red {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        background-color: var(--red);
+        color: white;
+        font-weight: 600;
+        transition: background-color 0.3s ease, transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .btn-red:hover {
+        background-color: var(--l-red);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen flex flex-col items-center justify-start px-4 pt-24"
+  >
+    <!-- Navbar -->
+    <nav
+      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
+    >
+      <div
+        class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <!-- Logo -->
+        <a
+          href="index.html"
+          class="text-2xl font-bold hover:text-[var(--tropical-indigo)] transition"
+        >
+          CTRL + ALT + HEAL
+        </a>
+
+        <!-- Desktop Menu -->
+        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="analyzer.html" class="nav-link">Analyzer</a></li>
+          <li><a href="profile.html" class="nav-link">Profile</a></li>
+          <li><a href="login.html" class="nav-link">Login</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+        </ul>
+
+        <!-- Hamburger Menu -->
+        <button id="hamburger" class="md:hidden text-[#000000] text-2xl">
+          ☰
+        </button>
+      </div>
+
+      <!-- Mobile Menu -->
+      <ul
+        id="mobile-menu"
+        class="hidden flex-col space-y-4 bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg mt-2 p-4 mx-6 md:hidden"
+      >
+        <li>
+          <a
+            href="index.html"
+            class="block text-bold text-gray-800 hover:text-[var(--neon-green)]"
+            >Home</a
+          >
+        </li>
+        <li>
+          <a
+            href="analyzer.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Analyzer</a
+          >
+        </li>
+        <li>
+          <a
+            href="profile.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Profile</a
+          >
+        </li>
+        <li>
+          <a
+            href="login.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Login</a
+          >
+        </li>
+        <li>
+          <a
+            href="about.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >About</a
+          >
+        </li>
       </ul>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="flex items-center justify-center mt-12">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-      <h2 id="formTitle" class="text-2xl font-semibold text-[#6B9080] mb-6">Log In</h2>
-      <input type="hidden" id="mode" value="login">
+    <!-- Login Form -->
+    <div class="form-card w-full max-w-md fade-slide-up mt-8">
+      <h2 id="formTitle" class="text-2xl font-semibold text-[var(--blue)] mb-6">
+        Log In
+      </h2>
+      <input type="hidden" id="mode" value="login" />
 
       <label class="block mb-2 text-sm font-medium">Mode</label>
-      <select id="modeSelector" onchange="toggleMode(this.value)" class="w-full mb-4 px-4 py-2 border rounded">
+      <select
+        id="modeSelector"
+        onchange="toggleMode(this.value)"
+        class="form-input mb-4"
+      >
         <option value="login">Log In</option>
         <option value="signup">Sign Up</option>
       </select>
 
       <label class="block mb-2 text-sm font-medium">Email</label>
-      <input type="email" id="email" placeholder="you@example.com" class="w-full mb-4 px-4 py-2 border rounded" />
+      <input
+        type="email"
+        id="email"
+        placeholder="you@example.com"
+        class="form-input mb-4"
+      />
 
       <label class="block mb-2 text-sm font-medium">Password</label>
-      <input type="password" id="password" placeholder="••••••••" class="w-full mb-4 px-4 py-2 border rounded" />
+      <input
+        type="password"
+        id="password"
+        placeholder="••••••••"
+        class="form-input mb-4"
+      />
 
-      <div id="nameGroup" style="display:none;">
+      <div id="nameGroup" style="display: none">
         <label class="block mb-2 text-sm font-medium">Name</label>
-        <input type="text" id="name" placeholder="Your Name" class="w-full mb-4 px-4 py-2 border rounded" />
+        <input
+          type="text"
+          id="name"
+          placeholder="Your Name"
+          class="form-input mb-4"
+        />
       </div>
 
-      <div id="dobGroup" style="display:none;">
+      <div id="dobGroup" style="display: none">
         <label class="block mb-2 text-sm font-medium">Date of Birth</label>
-        <input type="date" id="dob" class="w-full mb-6 px-4 py-2 border rounded" />
+        <input type="date" id="dob" class="form-input mb-6" />
       </div>
 
-      <button onclick="submitForm()" id="submitBtn" class="w-full bg-[#6B9080] text-white py-2 rounded hover:bg-[#5B7A6F] mb-2">Log In</button>
-      <button onclick="resetPassword()" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Reset Password</button>
+      <button onclick="submitForm()" id="submitBtn" class="btn-primary mb-2">
+        Log In
+      </button>
+      <button onclick="resetPassword()" class="btn-red">Reset Password</button>
     </div>
-  </div>
-</body>
+
+    <!-- Firebase & JS -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        sendPasswordResetEmail,
+      } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+      } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "",
+        authDomain: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: "",
+        measurementId: "",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.toggleMode = (mode) => {
+        document.getElementById("formTitle").textContent =
+          mode === "signup" ? "Sign Up" : "Log In";
+        document.getElementById("nameGroup").style.display =
+          mode === "signup" ? "block" : "none";
+        document.getElementById("dobGroup").style.display =
+          mode === "signup" ? "block" : "none";
+        document.getElementById("submitBtn").textContent =
+          mode === "signup" ? "Sign Up" : "Log In";
+        document.getElementById("mode").value = mode;
+      };
+
+      window.submitForm = async () => {
+        const mode = document.getElementById("mode").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        try {
+          if (mode === "signup") {
+            const name = document.getElementById("name").value;
+            const dob = document.getElementById("dob").value;
+            const userCredential = await createUserWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+            const user = userCredential.user;
+            await setDoc(doc(db, "users", user.uid), { name, email, dob });
+          } else {
+            await signInWithEmailAndPassword(auth, email, password);
+          }
+          window.location.href = "profile.html";
+        } catch (err) {
+          alert(
+            (mode === "signup" ? "Sign Up" : "Log In") +
+              " error: " +
+              err.message
+          );
+        }
+      };
+
+      window.resetPassword = async () => {
+        const email = document.getElementById("email").value;
+        if (!email) return alert("Please enter your email to reset password.");
+        try {
+          await sendPasswordResetEmail(auth, email);
+          alert("Password reset email sent to " + email);
+        } catch (err) {
+          alert("Error sending password reset: " + err.message);
+        }
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        toggleMode("login");
+
+        // Navbar scroll animation
+        const navbar = document.getElementById("navbar");
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 20) navbar.classList.add("scrolled");
+          else navbar.classList.remove("scrolled");
+        });
+      });
+    </script>
+  </body>
 </html>
