@@ -98,7 +98,7 @@ async def analyze(
     
     print(ocr_full)
     ranges = analyze_measurements(ocr_full)
-    print(rangess)
+    print(ranges)
     # print ("Ranges is being printed", ranges)
     historical_med_data = detect_past_diseases(ocr_full)
     
