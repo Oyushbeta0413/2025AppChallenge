@@ -7,96 +7,150 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <style>
-      /* Replace @apply with equivalent Tailwind classes */
-      .rec-card {
-        background-color: white;
-        border: 1px solid #e5e7eb; /* border-gray-200 */
-        border-radius: 1rem; /* rounded-2xl */
-        padding: 1.25rem; /* p-5 */
-        margin-bottom: 1.5rem; /* mb-6 */
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06); /* shadow-md */
-        transition: all 0.3s; /* transition-all duration-300 */
+      :root {
+        --tropical-indigo: rgb(120, 187, 242);
+        --wisteria: rgb(197, 217, 251);
+        --latte-cream: #ffffff;
       }
+
+      body {
+        font-family: "Rubik", sans-serif;
+        background-color: var(--latte-cream);
+        color: #333;
+      }
+
+      .btn-primary {
+        background-color: var(--tropical-indigo);
+        color: white;
+        transition: 0.3s;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--wisteria);
+        color: #333;
+      }
+
+      .rec-card {
+        background-color: var(--wisteria);
+        border: 1px solid #d1d5db;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s;
+      }
+
       .rec-card:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06); /* hover:shadow-xl */
-        transform: scale(1.01); /* hover:scale-[1.01] */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+        transform: scale(1.01);
       }
 
       .rec-title {
-        font-size: 1.125rem; /* text-lg */
-        font-weight: 700; /* font-bold */
-        color: #6b9080; /* text-[#6B9080] */
-        margin-bottom: 0.5rem; /* mb-2 */
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--tropical-indigo);
+        margin-bottom: 0.5rem;
       }
 
       .rec-badge {
-        font-size: 0.75rem; /* text-xs */
-        font-weight: 600; /* font-semibold */
-        padding: 0.25rem 0.75rem; /* px-3 py-1 */
-        border-radius: 9999px; /* rounded-full */
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
       }
 
       .badge-high {
-        background-color: #fee2e2; /* bg-red-100 */
-        color: #b91c1c; /* text-red-800 */
+        color: rgb(255, 132, 132);
       }
 
       .badge-medium {
-        background-color: #fef3c7; /* bg-yellow-100 */
-        color: #c28f06; /* text-yellow-800 */
+        color: rgb(253, 231, 171);
       }
 
       .badge-low {
-        background-color: #d1fae5; /* bg-green-100 */
-        color: #065f46; /* text-green-800 */
+        color: rgb(168, 255, 172);
       }
 
       .rec-content {
-        list-style-type: disc; /* list-disc */
-        margin-left: 1.25rem; /* ml-5 */
-        margin-bottom: 0; /* space-y-2 */
-        font-size: 0.875rem; /* text-sm */
-        color: #374151; /* text-gray-700 */
+        list-style-type: disc;
+        margin-left: 1.25rem;
+        font-size: 0.875rem;
+        color: #333;
       }
 
       .rec-link {
-        color: #6b9080; /* text-[#6B9080] */
-        text-decoration: underline; /* underline */
-        transition: color 0.2s; /* transition */
+        color: var(--tropical-indigo);
+        text-decoration: underline;
+        transition: color 0.2s;
       }
 
       .rec-link:hover {
-        color: #4e7267; /* hover:text-[#4E7267] */
+        color: #5a99c9;
       }
     </style>
   </head>
-  <body class="bg-[#F7F8F9] font-sans min-h-screen">
+  <body>
     <!-- Navbar -->
-    <nav class="bg-white shadow px-6 py-4">
+    <nav class="bg-var(--latte-cream) shadow px-6 py-4">
       <div class="container mx-auto flex justify-between items-center">
-        <a href="index.html" class="text-2xl font-bold text-[#6B9080]"
+        <a
+          href="index.html"
+          class="text-2xl font-bold"
+          style="color: var(--tropical-indigo)"
           >CTRL + ALT + HEAL</a
         >
-        <ul class="flex space-x-6 text-sm font-medium text-gray-700">
-          <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+        <ul class="flex space-x-6 text-sm font-medium">
           <li>
-            <a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a>
+            <a
+              href="index.html"
+              style="color: #333"
+              class="hover:text-var(--tropical-indigo)"
+              >Home</a
+            >
           </li>
           <li>
-            <a href="profile.html" class="hover:text-[#6B9080]">Profile</a>
+            <a
+              href="analyzer.html"
+              style="color: #333"
+              class="hover:text-var(--tropical-indigo)"
+              >Analyzer</a
+            >
           </li>
-          <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
           <li>
-            <a href="about.html" class="hover:text-[#6B9080]">About Us</a>
+            <a
+              href="profile.html"
+              style="color: #333"
+              class="hover:text-var(--tropical-indigo)"
+              >Profile</a
+            >
+          </li>
+          <li>
+            <a
+              href="login.html"
+              style="color: #333"
+              class="hover:text-var(--tropical-indigo)"
+              >Login</a
+            >
+          </li>
+          <li>
+            <a
+              href="about.html"
+              style="color: #333"
+              class="hover:text-var(--tropical-indigo)"
+              >About Us</a
+            >
           </li>
         </ul>
       </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-4 mb-16">
+    <main class="max-w-5xl mx-auto px-4 mb-16 pt-4">
       <!-- Upload Section -->
-      <div class="bg-white shadow rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold text-[#6B9080] mb-4">
+      <div class="bg-var(--latte-cream) shadow rounded-lg p-6 mb-8">
+        <h2
+          class="text-xl font-semibold mb-4"
+          style="color: var(--tropical-indigo)"
+        >
           Upload & Analyze Your Medical PDF or Image
         </h2>
         <input
@@ -105,46 +159,51 @@
           accept=".pdf, image/*"
           class="w-full mb-4 border border-gray-300 rounded px-3 py-2"
         />
-        <button
-          id="analyze-btn"
-          class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F] transition-all hover:shadow-lg hover:scale-105 duration-200"
-        >
+        <button id="analyze-btn" class="btn-primary px-4 py-2 rounded">
           Analyze with AI
         </button>
         <p id="loading" class="text-gray-600 mt-2">No file uploaded yet.</p>
       </div>
 
       <!-- Summary Box -->
-      <div class="bg-white shadow rounded-lg p-6 mb-8">
-        <h3 class="text-lg font-semibold text-[#6B9080] mb-3">
+      <div class="bg-var(--latte-cream) shadow rounded-lg p-6 mb-8">
+        <h3
+          class="text-lg font-semibold mb-3"
+          style="color: var(--tropical-indigo)"
+        >
           Summarized Text
         </h3>
         <div
-          class="whitespace-pre-wrap h-60 overflow-y-auto bg-white text-sm text-gray-800 border border-gray-200 rounded p-4"
+          class="whitespace-pre-wrap h-60 overflow-y-auto bg-var(--latte-cream) text-sm border border-gray-200 rounded p-4"
+          id="summaryBox"
         >
-          <pre id="summaryBox">...</pre>
+          ...
         </div>
       </div>
 
       <!-- AI Recommendations -->
-      <div class="bg-white shadow rounded-lg p-6 mb-8">
-        <h3 class="text-lg font-semibold text-[#6B9080] mb-3">
+      <div class="bg-var(--latte-cream) shadow rounded-lg p-6 mb-8">
+        <h3
+          class="text-lg font-semibold mb-3"
+          style="color: var(--tropical-indigo)"
+        >
           AI Recommendations
         </h3>
-        <div
-          id="recommendations-output"
-          class="bg-[#F9FAFB] text-sm text-gray-800 border border-gray-200 rounded p-4 space-y-4"
-        >
-          Recommendations will appear here.
-        </div>
+        <div id="recommendations-output" class="space-y-4"></div>
       </div>
 
       <!-- Chatbot Section -->
-      <div class="bg-white shadow rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Ask Dr. CTRL</h3>
+      <div class="bg-var(--latte-cream) shadow rounded-lg p-6">
+        <h3
+          class="text-lg font-semibold mb-3"
+          style="color: var(--tropical-indigo)"
+        >
+          Ask Dr. CTRL
+        </h3>
         <div
           id="chat-output"
-          class="space-y-2 h-48 overflow-y-auto border border-gray-200 rounded p-4 bg-[#F9FAFB] text-sm text-gray-800"
+          class="space-y-2 h-48 overflow-y-auto border border-gray-200 rounded p-4"
+          style="background-color: var(--wisteria); color: #333"
         >
           <p>
             <strong>Dr. CTRL:</strong> Hello, I’m Dr. CTRL — your pixel-powered
@@ -156,18 +215,17 @@
             type="text"
             id="user-question"
             placeholder="Ask a question about your report"
-            class="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#6B9080]"
+            class="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2"
+            style="focus:ring-color: var(--tropical-indigo);"
           />
-          <button
-            id="ask-btn"
-            class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F] transition-all hover:shadow-lg hover:scale-105 duration-200"
-          >
+          <button id="ask-btn" class="btn-primary px-4 py-2 rounded">
             Ask
           </button>
         </div>
       </div>
     </main>
 
+    <!-- JS stays exactly the same as your original -->
     <script type="module">
       document.addEventListener("DOMContentLoaded", () => {
         const recsOutput = document.getElementById("recommendations-output");
@@ -200,10 +258,7 @@
 
             const response = await fetch(
               "http://127.0.0.1:5501/analyzer.html",
-              {
-                method: "POST",
-                body: formData,
-              }
+              { method: "POST", body: formData }
             );
 
             if (!response.ok)
