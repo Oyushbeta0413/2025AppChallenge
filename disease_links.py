@@ -215,6 +215,6 @@ diseases = {
     "ependymoma": "https://www.cancer.gov/types/brain/patient/ependymoma-treatment-pdq",
     "glioblastoma": "https://www.cancer.gov/types/brain/patient/adult-glioblastoma-treatment-pdq",
     "choroid plexus carcinoma": "https://www.cancer.gov/pediatric-adult-rare-tumor/rare-tumors/rare-central-nervous-system-tumors/choroid-plexus",
-    "craniopharyngioma": "https://www.cancer.gov/types/brain/patient/craniopharyngioma-treatment-pdq"
-    "unknown": https://www.google.com/"
-}
+    "craniopharyngioma": "https://www.cancer.gov/types/brain/patient/craniopharyngioma-treatment-pdq",
+    "unknown":"http://www.webmd.com/"
+    }

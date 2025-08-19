@@ -9,17 +9,43 @@ import fitz
 import traceback
 import pandas as pd
 import re
+import platform
+import google.generativeai as genai
+import json
+import os
+from dto.request_responses import AnalysisResponse, ChatRequest, ChatResponse
 
 from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords, analyze_measurements, detect_past_diseases
 from disease_links import diseases as disease_links
 from disease_steps import disease_next_steps
 from disease_support import disease_doctor_specialty, disease_home_care
-
+from api_key import GEMINI_API_KEY
 df = pd.read_csv("measurement.csv")
 df.columns = df.columns.str.lower()
 df['measurement'] = df['measurement'].str.lower()
 
 app = FastAPI()
+
+system_prompt_chat = """
+You are a helpful medical assistant. Your task is to answer user questions based *only* on the provided medical document text.
+Do not invent information or provide medical advice. If the answer is not in the text, simply say "I cannot find the answer in the provided document."
+
+Provided Document Text:
+{document_text}
+
+User Question:
+{user_question}
+
+Assistant Answer:
+"""
+
+if platform.system() == "Darwin": 
+    #pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'  
+    pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'  
+    
+elif platform.system() == "Windows":
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,6 +59,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+try:
+    genai.configure(api_key=GEMINI_API_KEY)
+except Exception as e:
+    raise RuntimeError(f"Failed to configure Gemini API: {e}")
 
 def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
@@ -148,3 +178,28 @@ def analyze_text(text):
         "extracted_text": text,
         "summary": f"Detected Disease: {disease}, Severity: {severity}"
     }
+
+@app.post("/chat/", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    """
+    Chatbot endpoint that answers questions based on the last analyzed document.
+    """
+    global EXTRACTED_TEXT_CACHE
+
+    if not EXTRACTED_TEXT_CACHE:
+        raise HTTPException(status_code=400, detail="Please analyze an image or PDF first to provide a document context.")
+    
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        full_prompt = system_prompt_chat.format(
+            document_text=EXTRACTED_TEXT_CACHE,
+            user_question=request.question
+        )
+        
+        response = model.generate_content(full_prompt)
+        
+        return ChatResponse(answer=response.text)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred during chat response generation: {e}")
