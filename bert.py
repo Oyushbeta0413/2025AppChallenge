@@ -29,7 +29,7 @@ def extract_number(text):
     match = re.search(r'(\d+\.?\d*)', text)
     return float(match.group(1)) if match else None
 
-def analyze_measurements(text, df):
+def analyze_measurements(text):
     results = []
     final_numbers = []
     graphs_values = []
