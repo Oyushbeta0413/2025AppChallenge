@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTRL + ALT + HEAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --tropical-indigo: rgb(120, 187, 242);
+        --wisteria: rgb(197, 217, 251);
+        --latte-cream: #ffffff;
+      }
+
+      body {
+        font-family: "Rubik", sans-serif;
+        background-color: var(--latte-cream);
+        color: #333;
+      }
+
+      .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out;
+      }
+      .fade-in.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .glass-card {
+        background: rgba(162, 160, 160, 0.075);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 2rem;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .nav-link {
+        position: relative;
+        padding-bottom: 4px;
+        transition: color 0.3s;
+      }
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0%;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--tropical-indigo);
+        transition: width 0.3s ease;
+      }
+      .nav-link:hover::after {
+        width: 100%;
+      }
+
+      .parallax {
+        background-attachment: fixed;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+      }
+
+      /* Typing effect styles */
+      #typed-heading,
+      #typed-paragraph {
+        overflow: hidden;
+        white-space: nowrap;
+        border-right: 2px solid var(--tropical-indigo);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav
+      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
+    >
+      <div
+        class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <!-- Logo -->
+        <a
+          href="index.html"
+          class="text-2xl font-bold text-[#FOE3CE hover:text-[var(--tropical-indigo)] transition"
+        >
+          CTRL + ALT + HEAL
+        </a>
+
+        <!-- Desktop Menu -->
+        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="analyzer.html" class="nav-link">Analyzer</a></li>
+          <li><a href="profile.html" class="nav-link">Profile</a></li>
+          <li><a href="login.html" class="nav-link">Login</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+        </ul>
+
+        <!-- Hamburger Menu -->
+        <button
+          id="hamburger"
+          class="md:hidden text-[var(--latte-cream)] text-2xl"
+        >
+          ☰
+        </button>
+      </div>
+
+      <!-- Mobile Menu -->
+      <ul
+        id="mobile-menu"
+        class="hidden flex-col space-y-4 bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg mt-2 p-4 mx-6 md:hidden"
+      >
+        <li>
+          <a
+            href="index.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Home</a
+          >
+        </li>
+        <li>
+          <a
+            href="analyzer.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Analyzer</a
+          >
+        </li>
+        <li>
+          <a
+            href="profile.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Profile</a
+          >
+        </li>
+        <li>
+          <a
+            href="login.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Login</a
+          >
+        </li>
+        <li>
+          <a
+            href="about.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >About</a
+          >
+        </li>
+      </ul>
+    </nav>
+
+    <script>
+      const hamburger = document.getElementById("hamburger");
+      const mobileMenu = document.getElementById("mobile-menu");
+
+      hamburger.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+    </script>
+
+    <!-- HERO SECTION -->
+    <section
+      class="relative min-h-[600px] flex items-center justify-center"
+      style="
+        background-image: url('https://videos.openai.com/vg-assets/assets%2Ftask_01k2qzfsscev8vmftcka1wp2et%2F1755299042_img_1.webp?st=2025-08-15T21%3A17%3A52Z&se=2025-08-21T22%3A17%3A52Z&sks=b&skt=2025-08-15T21%3A17%3A52Z&ske=2025-08-21T22%3A17%3A52Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=3d249c53-07fa-4ba4-9b65-0bf8eb4ea46a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=j0aFWc%2BchHFLtaa8JPylXkDFsrtP8zazpKyO8Edy5n8%3D&az=oaivgprodscus');
+        background-size: cover;
+        background-position: center;
+      "
+    >
+      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="relative z-10 text-center px-6 fade-in">
+        <h1 class="text-5xl md:text-6xl font-bold text-white mb-4">
+          CTRL + ALT + HEAL
+        </h1>
+        <p class="text-lg text-gray-200 mb-2">
+          From medical chaos to clarity. Upload your report, get real answers —
+          fast.
+        </p>
+        <p class="text-sm text-gray-300 mb-6">
+          No stress, no spiraling. Just answers that feel human.
+        </p>
+        <a href="login.html"
+          ><button
+            class="bg-[var(--tropical-indigo)] hover:bg-[var(--wisteria)] text-white px-8 py-3 rounded-lg shadow-lg transition"
+          >
+            Sign Up / Login
+          </button></a
+        >
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="py-20 bg-[var(--latte-cream)]">
+      <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8 fade-in">
+        <div class="glass-card">
+          <h3 class="text-2xl font-bold text-[var(--tropical-indigo)] mb-2">
+            Fast Results
+          </h3>
+          <p>Upload your report and get human-readable answers instantly.</p>
+        </div>
+        <div class="glass-card">
+          <h3 class="text-2xl font-bold text-[var(--tropical-indigo)] mb-2">
+            Clear Language
+          </h3>
+          <p>No medical jargon, just plain language you can understand.</p>
+        </div>
+        <div class="glass-card">
+          <h3 class="text-2xl font-bold text-[var(--tropical-indigo)] mb-2">
+            Actionable Steps
+          </h3>
+          <p>Know what to do next without the stress and confusion.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARALLAX INFO SECTION -->
+    <section
+      class="relative h-[200px] flex items-center justify-center text-center text-white parallax"
+    >
+      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="relative z-10 px-6 fade-in">
+        <h2 id="typed-heading" class="text-4xl font-bold mb-4"></h2>
+        <p id="typed-paragraph" class="text-lg max-w-xl mx-auto"></p>
+      </div>
+    </section>
+
+    <!-- BEEN THERE -->
+    <section class="py-20 bg-[var(--latte-cream)] fade-in">
+      <div
+        class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center"
+      >
+        <div>
+          <h3 class="text-3xl font-bold text-[var(--tropical-indigo)] mb-4">
+            Been There.
+          </h3>
+          <p class="mb-4">
+            That’s exactly why we built this app — to stop the health spiral
+            before it even starts. We know what it’s like to open a medical
+            report and immediately feel overwhelmed. Weird abbreviations.
+            Numbers with no context. Pages that feel like they were written for
+            robots, not real people. It’s confusing, it’s stressful, and it’s
+            usually a late‐night Google rabbit hole that somehow ends in you
+            thinking you’ve got 3 rare conditions and a 2-day countdown.
+          </p>
+          <p>
+            So we made something better. Just upload your report. We’ll break it
+            down into plain, human language. We’ll highlight what actually
+            matters, skip the jargon, and explain everything in a way that
+            actually makes sense. Most importantly, we’ll give you real,
+            practical steps — no guessing, no spiraling. You don’t need a
+            medical degree to understand your own health. You just need the
+            right guide. That’s us.
+          </p>
+        </div>
+        <div class="w-full h-80 rounded-lg overflow-hidden shadow-lg">
+          <img
+            src="https://i.pinimg.com/originals/44/c7/c1/44c7c1f3fbd68b2151c37af5f08198f1.gif"
+            class="object-cover w-full h-full rounded-lg"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-12 bg-[var(--wisteria)] text-white fade-in">
+      <div
+        class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center"
+      >
+        <p>&copy; 2025 CTRL + ALT + HEAL. All rights reserved.</p>
+        <div class="flex space-x-4 mt-4 md:mt-0">
+          <a href="#" class="hover:underline">Privacy Policy</a>
+          <a href="#" class="hover:underline">Terms of Service</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Fade-in on scroll
+      const fadeObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add("show");
+          });
+        },
+        { threshold: 0.1 }
+      );
+      document
+        .querySelectorAll(".fade-in")
+        .forEach((el) => fadeObserver.observe(el));
+
+      // Typing effect on scroll
+      const typeObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              typeText("typed-heading", "Your Health, Your Clarity", 80);
+              typeText(
+                "typed-paragraph",
+                "We make complex medical reports simple and easy to understand.",
+                30
+              );
+              typeObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+
+      typeObserver.observe(
+        document.querySelector("#typed-heading").parentElement
+      );
+
+      function typeText(id, text, speed) {
+        const el = document.getElementById(id);
+        let i = 0;
+        function type() {
+          if (i < text.length) {
+            el.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+          }
+        }
+        type();
+      }
+    </script>
+  </body>
+</html>

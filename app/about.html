@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>About Us | CTRL + ALT + HEAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --tropical-indigo: rgb(120, 187, 242);
+        --wisteria: rgb(197, 217, 251);
+        --latte-cream: #ffffff;
+      }
+
+      body {
+        font-family: "Rubik", sans-serif;
+        background-color: var(--latte-cream);
+        color: #333;
+      }
+
+      .btn-primary {
+        background-color: var(--tropical-indigo);
+        color: white;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--wisteria);
+        color: #333;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Navbar -->
+    <nav
+      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
+    >
+      <div
+        class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <!-- Logo -->
+        <a
+          href="index.html"
+          class="text-2xl font-bold hover:text-[var(--tropical-indigo)] transition"
+        >
+          CTRL + ALT + HEAL
+        </a>
+
+        <!-- Desktop Menu -->
+        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="analyzer.html" class="nav-link">Analyzer</a></li>
+          <li><a href="profile.html" class="nav-link">Profile</a></li>
+          <li><a href="login.html" class="nav-link">Login</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+        </ul>
+
+        <!-- Hamburger Menu -->
+        <button id="hamburger" class="md:hidden text-[#000000] text-2xl">
+          ☰
+        </button>
+      </div>
+
+      <!-- Mobile Menu -->
+      <ul
+        id="mobile-menu"
+        class="hidden flex-col space-y-4 bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg mt-2 p-4 mx-6 md:hidden"
+      >
+        <li>
+          <a
+            href="index.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Home</a
+          >
+        </li>
+        <li>
+          <a
+            href="analyzer.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Analyzer</a
+          >
+        </li>
+        <li>
+          <a
+            href="profile.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Profile</a
+          >
+        </li>
+        <li>
+          <a
+            href="login.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >Login</a
+          >
+        </li>
+        <li>
+          <a
+            href="about.html"
+            class="block text-gray-800 hover:text-[var(--neon-green)]"
+            >About</a
+          >
+        </li>
+      </ul>
+    </nav>
+
+    <script>
+      const hamburger = document.getElementById("hamburger");
+      const mobileMenu = document.getElementById("mobile-menu");
+
+      hamburger.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+    </script>
+
+    <!-- About Section -->
+    <section id="about" class="max-w-3xl mx-auto px-6 py-12 pt-24 font-sans">
+      <h1 class="text-3xl md:text-4xl font-bold mb-6">
+        About
+        <span class="text-[var(--tropical-indigo)]">CTRL + ALT + HEAL</span>
+      </h1>
+
+      <p class="mb-4">
+        <strong>CTRL + ALT + HEAL</strong> is a web platform designed to
+        simplify medical reports and empower patients (and their families) to
+        actually <em>understand</em> what’s going on.
+      </p>
+
+      <p class="mb-4">
+        We take complicated medical language — the kind that sounds like it was
+        written by a robot with a thesaurus — and translate it into clear,
+        human-readable explanations. No more Googling your labs and spiraling.
+      </p>
+
+      <p class="mb-8">
+        Built by students passionate about medicine, coding, and accessibility,
+        CTRL + ALT + HEAL is a tool for anyone who’s ever looked at a test
+        result and thought,<br />
+        <em class="text-gray-500">“...Is this bad??”</em>
+      </p>
+
+      <hr class="my-8 border-[var(--wisteria)]" />
+
+      <h2 class="text-2xl font-semibold mb-4 text-[var(--tropical-indigo)]">
+        Our Mission
+      </h2>
+      <p class="mb-8">
+        To make medical knowledge understandable, actionable, and a little less
+        scary — no med degree required. We believe that information is power,
+        and everyone deserves access to it.
+      </p>
+
+      <h2 class="text-2xl font-semibold mb-4 text-[var(--tropical-indigo)]">
+        What We Do
+      </h2>
+      <ul class="list-disc list-inside mb-8 space-y-2">
+        <li>
+          <strong>Simplify medical reports</strong> using clear language and
+          explainers.
+        </li>
+        <li>
+          <strong>Break down each section line-by-line</strong>, so nothing gets
+          missed.
+        </li>
+        <li>
+          <strong>Provide helpful context</strong>: what’s normal, what might
+          need attention, and what you can ask your doctor.
+        </li>
+        <li>
+          <strong>Give next steps</strong> when possible, so you’re not left
+          hanging.
+        </li>
+      </ul>
+
+      <h2 class="text-2xl font-semibold mb-4 text-[var(--tropical-indigo)]">
+        Who We Are
+      </h2>
+      <p class="mb-8">
+        A team of curious students (and hopefully future healthcare pros!)
+        combining coding skills, science brains, and a love for clarity. We
+        believe in tech that helps people — especially when it comes to their
+        health.
+      </p>
+
+      <h2 class="text-2xl font-semibold mb-4 text-[var(--tropical-indigo)]">
+        Our Origin Story
+      </h2>
+      <p class="mb-4">
+        This project started the way many great things do — with confusion and a
+        “Wait, what?” moment. After reading a real medical report full of jargon
+        and vague terms, we realized that even smart, curious people struggle to
+        understand their own health info.
+      </p>
+      <p class="mb-8">
+        So we decided to do something about it. CTRL + ALT + HEAL began as a
+        small idea:<br />
+        <em class="text-gray-500">“What if we made this easier to read?”</em
+        ><br />
+        That idea turned into a tool, then a platform — and now a growing
+        project to make health literacy more accessible to everyone.
+      </p>
+
+      <h2 class="text-2xl font-semibold mb-4 text-[var(--tropical-indigo)]">
+        What’s Next
+      </h2>
+      <p class="mb-4">
+        We're just getting started. Here's what's on the roadmap:
+      </p>
+      <ul class="list-disc list-inside mb-8 space-y-2">
+        <li>
+          Support for more types of medical documents (e.g., imaging,
+          prescriptions).
+        </li>
+        <li>A user-friendly dashboard to save and track reports over time.</li>
+        <li>Mobile optimization and offline support.</li>
+      </ul>
+      <p class="mb-8">
+        We're always building, always improving — and we’re listening. Got
+        ideas? Let us know!
+      </p>
+
+      <h2 class="text-2xl font-semibold mb-4 text-[var(--tropical-indigo)]">
+        Disclaimer
+      </h2>
+      <p class="text-sm text-gray-600">
+        <strong>CTRL + ALT + HEAL</strong> does not replace professional medical
+        advice, diagnosis, or treatment. Always consult with your healthcare
+        provider — we just make it easier to <em>understand</em> what’s being
+        said.
+      </p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white py-8 mt-12 border-t border-[var(--wisteria)]">
+      <div
+        class="max-w-4xl mx-auto px-6 flex flex-col items-center justify-center text-center gap-6"
+      >
+        <p class="text-lg font-medium text-gray-700">
+          Got Ideas? Feedback? Or just wanna Vibe with us?
+        </p>
+        <a
+          href="mailto:cataanya77@gmail.com"
+          class="inline-block btn-primary px-6 py-2 rounded-full"
+        >
+          Contact the Team
+        </a>
+      </div>
+    </footer>
+  </body>
+</html>
