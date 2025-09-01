@@ -9,25 +9,53 @@ import fitz
 import traceback
 import pandas as pd
 import re
-import platform
-import google.generativeai as genai
-import json
-import os
-from dto.request_responses import AnalysisResponse, ChatRequest, ChatResponse,TextRequest
-from chatbot import system_prompt_chat
+
 from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords, analyze_measurements, detect_past_diseases
 from disease_links import diseases as disease_links
 from disease_steps import disease_next_steps
 from disease_support import disease_doctor_specialty, disease_home_care
-from api_key import GEMINI_API_KEY
-from util import load_pytesseract, load_genai, setupFastAPI, extract_images_from_pdf_bytes, clean_ocr_text, ocr_text_from_image
+
+df = pd.read_csv("measurement.csv")
+df.columns = df.columns.str.lower()
+df['measurement'] = df['measurement'].str.lower()
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8002"
+        "http://localhost:9000"
+        "http://localhost:5501"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-load_pytesseract()
-load_genai(GEMINI_API_KEY)
-app = setupFastAPI()
-EXTRACTED_TEXT_CACHE: str = ""
+def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    images = []
+    for page in doc:
+        pix = page.get_pixmap()
+        buf = io.BytesIO()
+        buf.write(pix.tobytes("png"))
+        images.append(buf.getvalue())
+    return images
 
+def clean_ocr_text(text: str) -> str:
+    text = text.replace("\x0c", " ")
+    text = text.replace("\u00a0", " ")    
+    text = re.sub(r'(\d)\s*\.\s*(\d)', r'\1.\2', text) 
+    text = re.sub(r'\s+', ' ', text)      
+    return text.strip()
+
+
+
+def ocr_text_from_image(image_bytes: bytes) -> str:
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    return pytesseract.image_to_string(image)
 
 @app.post("/analyze/")
 async def analyze(
@@ -36,8 +64,6 @@ async def analyze(
     mode: Optional[str] = Form(None)
 ):
     global resolution
-    global EXTRACTED_TEXT_CACHE
-
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded.")
 
@@ -55,14 +81,11 @@ async def analyze(
         ocr_text = ocr_text_from_image(img_bytes)
         ocr_full += ocr_text + "\n\n"
         ocr_full = clean_ocr_text(ocr_full)
-
-    # Store the OCR text in the cache for the chatbot
-    EXTRACTED_TEXT_CACHE = ocr_full.strip()
-    
+        if len(ocr_full) >= 3000:
+            return {"message": f"The length of the uploaded medical report is too long. Our limit is 2000 characters and your report is {len(ocr_full)} long. This may cause inaccuracies in our readings. Please shorten the report"}
         
-    if model.lower() == "gemini":
-        return {"message": "Gemini model is not fully integrated for analysis in this version. Using BERT for analysis.",
-                "ocr_text": EXTRACTED_TEXT_CACHE}
+        if model.lower() == "gemini":
+            return {"message": "Gemini model not available; please use BERT model."}
 
     found_diseases = extract_non_negated_keywords(ocr_full)
     past = detect_past_diseases(ocr_full)
@@ -97,8 +120,8 @@ async def analyze(
     })
     
     print(ocr_full)
-    ranges = analyze_measurements(ocr_full)
-    print(ranges)
+    ranges = analyze_measurements(ocr_full, df)
+    print(analyze_measurements(ocr_full, df))
     # print ("Ranges is being printed", ranges)
     historical_med_data = detect_past_diseases(ocr_full)
     
@@ -108,49 +131,21 @@ async def analyze(
         "Detected Measurement Values": ranges,
     }
 
-
+class TextRequest(BaseModel):
+    text: str
 
 @app.post("/analyze-text")
 async def analyze_text_endpoint(request: TextRequest):
     try:
-        severity, disease = classify_disease_and_severity(request.text)
-        return {
-            "extracted_text": request.text,
-            "summary": f"Detected Disease: {disease}, Severity: {severity}"
-        }
+        return analyze_text(request.text)
     except Exception as e:
         print("ERROR in /analyze-text:", traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error analyzing text: {str(e)}")
 
 
-@app.post("/chat/", response_model=ChatResponse)
-async def chat_endpoint(request: ChatRequest):
-    """
-    Chatbot endpoint that answers questions based on the last analyzed document.
-    """
-    global EXTRACTED_TEXT_CACHE
-
-    if not EXTRACTED_TEXT_CACHE:
-        raise HTTPException(status_code=400, detail="Please analyze an image or PDF first to provide a document context.")
-    
-    try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
-        full_prompt = system_prompt_chat.format(
-            document_text=EXTRACTED_TEXT_CACHE,
-            user_question=request.question
-        )
-        
-        response = model.generate_content(full_prompt)
-        
-        return ChatResponse(answer=response.text)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred during chat response generation: {e}")
-
-
-
-if __name__ == '__main__':
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+def analyze_text(text):
+    severity, disease = classify_disease_and_severity(text)
+    return {
+        "extracted_text": text,
+        "summary": f"Detected Disease: {disease}, Severity: {severity}"
+    }
