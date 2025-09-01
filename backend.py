@@ -52,7 +52,6 @@ def clean_ocr_text(text: str) -> str:
     return text.strip()
 
 
-
 def ocr_text_from_image(image_bytes: bytes) -> str:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     return pytesseract.image_to_string(image)
@@ -92,10 +91,10 @@ async def analyze(
 
     for disease in found_diseases:
         if disease in past:    
-            severity, _ = classify_disease_and_severity(ocr_full)
+            severity = classify_disease_and_severity(disease)
             detected_diseases.add(((f"{disease}(detected as historical condition, but still under risk.)"), severity))
         else:
-            severity, _ = classify_disease_and_severity(ocr_full)
+            severity = classify_disease_and_severity(disease)
             detected_diseases.add((disease, severity))
         
         
