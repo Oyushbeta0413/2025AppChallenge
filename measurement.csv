@@ -222,3 +222,18 @@ blood-gas, ph, alkaline, pH,7.46,14
 blood-gas, hco3, low, mmol/L,0,21
 blood-gas, hco3, normal, mmol/L,22,28
 blood-gas, hco3, high, mmol/L,29,40
+vitals,temperature,low,°C,0,35.9
+vitals,temperature,normal,°C,36,37.5
+vitals,temperature,high (fever),°C,37.6,39.4
+vitals,temperature,very high,°C,39.5,45
+vitals,heart rate,low (brady),bpm,0,59
+vitals,heart rate,normal,bpm,60,100
+vitals,heart rate,high (tachy),bpm,101,200
+vitals,oxygen-saturation,low (hypoxia),%,0,94
+vitals,oxygen-saturation,normal,%,95,100
+vitals,oxygen saturation,low (hypoxia),%,0,94
+vitals,oxygen saturation,normal,%,95,100
+vitals,temperature,low,°F,32,96.6
+vitals,temperature,normal,°F,96.8,99.5
+vitals,temperature,high (fever),°F,99.7,102.9
+vitals,temperature,very high,°F,103.1,113
