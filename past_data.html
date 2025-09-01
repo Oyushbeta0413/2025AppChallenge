@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Past Analyzes - CTRL + ALT + HEAL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#F7F8F9] min-h-screen">
+  <nav class="bg-white border border-gray-200 px-6 py-4 mb-8">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
+        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
+        <li><a href="past_data.html" class="hover:text-[#6B9080]">Past Reports</a></li>
+        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+        <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
+        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4">
+    <h1 class="text-2xl font-bold text-green-700 mb-4">Your Past Analyzes</h1>
+    <p id="auth-status" class="text-sm text-gray-500 mb-6">Checking sign-in status…</p>
+
+    <div id="recs-container" class="space-y-4">
+      <p class="text-sm text-gray-500">Sign in to view your saved analyzes.</p>
+    </div>
+  </main>
+
+  
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // have to replace with ur own creds
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPhM_Ee7cLzyKHs5zyFy8g5ZOk9-pubRI",
+      authDomain: "login-tutorial-7a9e1.firebaseapp.com",
+      projectId: "login-tutorial-7a9e1",
+      storageBucket: "login-tutorial-7a9e1.firebasestorage.app",
+      messagingSenderId: "491093197824",
+      appId: "1:491093197824:web:9f86659034af7e6a8244e5",
+      measurementId: "G-JM7T9N6ZLZ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    const statusEl = document.getElementById("auth-status");
+    const recsEl   = document.getElementById("recs-container");
+
+
+    function renderAnalysis(item) {
+      const d = item.createdAt && item.createdAt.toDate ? item.createdAt.toDate().toLocaleString() : "";
+      return `
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow">
+          <div class="flex justify-between mb-2">
+            <div class="font-semibold text-green-700">Report: ${item.reportDate || "N/A"}</div>
+            <div class="text-xs text-gray-500">${d}</div>
+          </div>
+          <pre class="whitespace-pre-wrap text-sm text-gray-700 mb-2">${item.ocr_text || ""}</pre>
+          ${(Array.isArray(item.resolutions) ? item.resolutions : []).map((r,i) => `
+            <div class="border-t border-gray-200 pt-2 mt-2">
+              <div class="font-medium">Finding ${i+1}: ${r.findings || ""}</div>
+              <div class="text-sm text-gray-600">Severity: ${r.severity || ""}</div>
+              <div class="text-sm text-gray-600">Recommendations: ${(r.recommendations || []).join(", ")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        statusEl.textContent = `Signed in as ${user.email || user.uid}`;
+        const snap = await db.collection("users").doc(user.uid)
+                             .collection("analyses")
+                             .orderBy("createdAt","desc")
+                             .get();
+        if (snap.empty) {
+          recsEl.innerHTML = '<p class="text-sm text-gray-500">No saved analyses yet.</p>';
+          return;
+        }
+        recsEl.innerHTML = snap.docs.map(doc => renderAnalysis(doc.data())).join("");
+      } else {
+        statusEl.textContent = "Not signed in.";
+        recsEl.innerHTML = '<p class="text-sm text-gray-500">Please sign in to see your analyses.</p>';
+      }
+    });
+  </script>
+</body>
+</html>
