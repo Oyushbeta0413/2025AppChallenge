@@ -64,12 +64,19 @@
 
     <!-- AI Recommendations -->
     <div class="bg-white shadow rounded-lg p-6 mb-8">
-      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">AI Recommendations</h3>
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">AI Findings</h3>
       <div id="recommendations-output" class="bg-[#F9FAFB] text-sm text-gray-800 border border-gray-200 rounded p-4 space-y-4">
-        Recommendations will appear here.
+        Findings and Recommendations will appear here.
       </div>
     </div>
 
+    <!-- Detected Measurement Values -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Detected Measurement Values</h3>
+      <div id="detected-measurement-results" class="bg-[#F9FAFB] text-sm text-gray-800 border border-gray-200 rounded p-4 space-y-4">
+        Your measurement values will appear here.
+      </div>
+    </div>    
 
     <!-- QA Chatbot -->
     <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
@@ -112,6 +119,7 @@
     const textOutput   = document.getElementById('text-output');
     const recsOutput   = document.getElementById('recommendations-output');
     const authStatus   = document.getElementById('auth-status');
+    const findingsOutput = document.getElementById('detected-measurement-results')
     let extractedText  = "";
     let currentUser    = null;
 
@@ -191,7 +199,9 @@
       try {
         const res = await fetch('http://localhost:9000/analyze/', { method: 'POST', body: formData });
         if (!res.ok) throw new Error(await res.text());
+        console.log('The Res value is: '+res);
         data = await res.json();
+        console.log('The output data is: '+data);
       } catch (err) {
         console.error(err);
         loadingEl.textContent = "Error during analysis: " + err.message;
@@ -201,16 +211,33 @@
       // OCR text
       extractedText = data.ocr_text || "";
       textOutput.textContent = extractedText;
+      console.log('The extractedText Value is: '+extractedText);
+      console.log('The Detected Measurement Value is: '+data.Detected_Anomolies);
+      console.log('The txtxOutput value is: '+textOutput);
       //recs
-      const recs = Array.isArray(data.resolutions) ? data.resolutions : (data.resolutions ? [data.resolutions] : []);
-      if (recs.length) {
+      const recs = Array.isArray(data.Detected_Anomolies) ? data.Detected_Anomolies : (data.Detected_Anomolies ? [data.Detected_Anomolies] : []);
+      console.log("The output is :"+recs);
+      ////recsOutput.innerHTML = data.Detected_Measurement_Values;
+      
+      if (data.Detected_Anomolies) {
         recsOutput.innerHTML = recs.map((rec, i) => renderRecCard(rec,i)).join('');
+        ////console.log('The data specific value is: '+data.Detected_Anomolies);
+        ////recsOutput.innerHTML = data.Detected_Anomolies;
       } else {
         recsOutput.textContent = "No recommendations found.";
       }
-
-      const measurements = data["detected measurements"] || data.detected_measurements || [];
-
+      
+      const findings = Array.isArray(data.Detected_Measurement_Values) ? data.Detected_Measurement_Values : (data.Detected_Measurement_Values ? [data.Detected_Measurement_Values] : []);
+      console.log("The output is :"+findings);
+      ////recsOutput.innerHTML = data.Detected_Measurement_Values;
+      
+      if (data.Detected_Measurement_Values) {
+        findingsOutput.innerHTML = findings.map((finding, i) => renderRecCard(finding,i)).join('');
+        ////console.log('The data specific value is: '+data.Detected_Anomolies);
+        ////recsOutput.innerHTML = data.Detected_Anomolies;
+      } else {
+        findingsOutput.textContent = "No measurements found.";
+      }
 
       if (currentUser) {
         await saveAnalysis(currentUser.uid, {
