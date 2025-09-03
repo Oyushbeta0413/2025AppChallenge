@@ -18,7 +18,6 @@
         color: #333;
       }
 
-      /* Navbar */
       nav a {
         color: #333;
         transition: color 0.3s ease;
@@ -27,7 +26,6 @@
         color: var(--tropical-indigo);
       }
 
-      /* Recommendation cards */
       .rec-card {
         background-color: var(--latte-cream);
         border: 1px solid var(--wisteria);
@@ -74,6 +72,7 @@
         font-size: 0.875rem;
         color: #374151;
       }
+
       .rec-link {
         color: var(--tropical-indigo);
         text-decoration: underline;
@@ -82,7 +81,6 @@
         color: #4b7bbd;
       }
 
-      /* Primary buttons */
       .btn-primary {
         background-color: var(--tropical-indigo);
         color: white;
@@ -92,7 +90,6 @@
         background-color: #5ba5dd;
       }
 
-      /* Inputs */
       input,
       textarea {
         border: 1px solid var(--wisteria);
@@ -105,13 +102,11 @@
         box-shadow: 0 0 0 2px rgba(120, 187, 242, 0.3);
       }
 
-      /* Section headers */
       h2,
       h3 {
         color: var(--tropical-indigo);
       }
 
-      /* Chatbox */
       #chat-output {
         background-color: #f7f9fc;
         border: 1px solid var(--wisteria);
@@ -232,7 +227,7 @@
       </div>
     </main>
 
-    <!-- Firebase + Script -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -249,6 +244,196 @@
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
       const db = firebase.firestore();
+    </script>
+
+    <!-- Main Logic -->
+    <script type="module">
+      import {
+        pipeline,
+        env,
+      } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0";
+
+      const loadingEl = document.getElementById("loading");
+      const textOutput = document.getElementById("text-output");
+      const recsOutput = document.getElementById("recommendations-output");
+      const findingsOutput = document.getElementById(
+        "detected-measurement-results"
+      );
+      const authStatus = document.getElementById("auth-status");
+      let extractedText = "";
+      let currentUser = null;
+
+      document
+        .getElementById("pdf-upload")
+        .addEventListener("change", function () {
+          loadingEl.textContent = this.files.length
+            ? `File selected: ${this.files[0].name}`
+            : "No file uploaded yet.";
+        });
+
+      const saveAnalysis = async (uid, payload) => {
+        try {
+          const docRef = await firebase
+            .firestore()
+            .collection("users")
+            .doc(uid)
+            .collection("analyses")
+            .add({
+              ...payload,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+          return docRef.id;
+        } catch (e) {
+          console.error("Failed to save analysis:", e);
+        }
+      };
+
+      const renderRecCard = (rec, idx) => {
+        const sev = (rec.severity || "").toLowerCase();
+        const sevClass = sev.includes("severe")
+          ? "badge-high"
+          : sev.includes("moderate")
+          ? "badge-medium"
+          : "badge-low";
+        return `
+        <div class="rec-card">
+          <div class="flex items-center justify-between">
+            <h4 class="rec-title">Finding ${idx + 1}: ${
+          rec.findings || "N/A"
+        }</h4>
+            <span class="rec-badge ${sevClass}">${rec.severity || "—"}</span>
+          </div>
+          <ul class="rec-content space-y-1">
+            <li><em>Recommendations:</em>
+              <ul class="list-disc list-inside ml-6">
+                ${(rec.recommendations || [])
+                  .map((r) => `<li>${r}</li>`)
+                  .join("")}
+              </ul>
+            </li>
+            <li><em>Treatment:</em> ${
+              rec.treatment_suggestions || "Not available"
+            }</li>
+            <li><em>Home Care:</em>
+              <ul class="list-disc list-inside ml-6">
+                ${(rec.home_care_guidance || [])
+                  .map((r) => `<li>${r}</li>`)
+                  .join("")}
+              </ul>
+            </li>
+            ${
+              rec.info_link
+                ? `<li><a href="${rec.info_link}" target="_blank" class="rec-link">Learn more</a></li>`
+                : ""
+            }
+          </ul>
+        </div>
+      `;
+      };
+
+      firebase.auth().onAuthStateChanged((user) => {
+        currentUser = user;
+        if (user) {
+          authStatus.textContent = `Signed in as ${user.email || user.uid}`;
+        } else {
+          authStatus.textContent =
+            "Not signed in. Sign in to save and view past analyses.";
+        }
+      });
+
+      document
+        .getElementById("analyze-btn")
+        .addEventListener("click", async () => {
+          const file = document.getElementById("pdf-upload").files[0];
+          const date = document.getElementById("report-date").value;
+          if (!file) {
+            loadingEl.textContent = "Please upload a file first.";
+            return;
+          }
+          if (!date) {
+            loadingEl.textContent = "Please select the report date.";
+            return;
+          }
+
+          loadingEl.textContent = "Processing with AI...";
+          textOutput.textContent = "";
+          recsOutput.textContent = "";
+
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("model", "bert");
+
+          let data;
+          try {
+            const res = await fetch("http://localhost:9000/analyze/", {
+              method: "POST",
+              body: formData,
+            });
+            if (!res.ok) throw new Error(await res.text());
+            data = await res.json();
+          } catch (err) {
+            console.error(err);
+            loadingEl.textContent = "Error during analysis: " + err.message;
+            return;
+          }
+
+          extractedText = data.ocr_text || "";
+          textOutput.textContent = extractedText;
+
+          const recs = Array.isArray(data.Detected_Anomolies)
+            ? data.Detected_Anomolies
+            : data.Detected_Anomolies
+            ? [data.Detected_Anomolies]
+            : [];
+          if (data.Detected_Anomolies) {
+            recsOutput.innerHTML = recs
+              .map((rec, i) => renderRecCard(rec, i))
+              .join("");
+          } else {
+            recsOutput.textContent = "No recommendations found.";
+          }
+
+          const findings = Array.isArray(data.Detected_Measurement_Values)
+            ? data.Detected_Measurement_Values
+            : data.Detected_Measurement_Values
+            ? [data.Detected_Measurement_Values]
+            : [];
+          if (data.Detected_Measurement_Values) {
+            findingsOutput.innerHTML = findings
+              .map((finding, i) => renderRecCard(finding, i))
+              .join("");
+          } else {
+            findingsOutput.textContent = "No measurements found.";
+          }
+
+          if (currentUser) {
+            await saveAnalysis(currentUser.uid, {
+              reportDate: date,
+              ocr_text: extractedText,
+              resolutions: recs,
+              measurements: findings,
+            });
+          }
+
+          loadingEl.textContent = "Analysis complete.";
+        });
+
+      document.getElementById("ask-btn").onclick = async () => {
+        const q = document.getElementById("user-question").value.trim();
+        if (!q) return;
+        const chat = document.getElementById("chat-output");
+        chat.innerHTML += `<p><strong>You:</strong> ${q}</p>`;
+        chat.scrollTop = chat.scrollHeight;
+        env.allowLocalModels = false;
+        const qa = await pipeline(
+          "question-answering",
+          "Xenova/distilbert-base-uncased-distilled-squad"
+        );
+        const out = await qa(q, extractedText);
+        chat.innerHTML += `<p><strong>Chatbot:</strong> ${out.answer}</p>`;
+        document.getElementById("user-question").value = "";
+        chat.scrollTop = chat.scrollHeight;
+      };
     </script>
   </body>
 </html>
