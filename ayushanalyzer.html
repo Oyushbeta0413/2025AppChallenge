@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Document Analyzer | CTRL + ALT + HEAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .rec-card {
+      background-color: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      transition: all .3s;
+    }
+    /* .rec-card:hover { box-shadow: 0 4px 6px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.06); transform: scale(1.01); } */
+    .rec-title { font-size: 1.125rem; font-weight: 700; color: #6b9080; margin-bottom: .5rem; }
+    .rec-badge { font-size: .75rem; font-weight: 600; padding: .25rem .75rem; border-radius: 9999px; }
+    .badge-high { background-color: #fee2e2; color:#b91c1c; }
+    .badge-medium { background-color: #fef3c7; color:#92400e; }
+    .badge-low { background-color: #d1fae5; color:#065f46; }
+    .rec-content { list-style-type: disc; margin-left: 1.25rem; font-size: .875rem; color:#374151; }
+    .rec-link { color:#6b9080; text-decoration: underline; }
+    .rec-link:hover { color:#4e7267; }
+  </style>
+</head>
+<body class="bg-[#F7F8F9] font-sans text-gray-800 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white border border-gray-200 px-6 py-4 mb-8">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
+        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
+        <li><a href="past_data.html" class="hover:text-[#6B9080]">Past Reports</a></li>
+        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+        <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
+        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 mb-16">
+    <!-- Upload & Score Section -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-[#6B9080] mb-4">Upload & Analyze Your Medical PDF or Image</h2>
+      <input type="file" id="pdf-upload" accept=".pdf, image/*" class="w-full mb-4 border border-gray-300 rounded px-3 py-2" />
+      <input type="date" id="report-date" class="w-full mb-4 border border-gray-300 rounded px-3 py-2" placeholder="Report Date" />
+      <button id="analyze-btn" class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F]">Analyze with AI</button>
+      <p id="loading" class="text-gray-600 mt-2">No file uploaded yet.</p>
+      <p id="auth-status" class="text-sm text-gray-500 mt-1">Sign in to save and view past analyses.</p>
+    </div>
+
+    <!-- Extracted Text -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Extracted Text</h3>
+      <div id="text-output" class="whitespace-pre-wrap h-60 overflow-auto bg-[#FAFBFC] text-sm text-gray-800 border border-gray-200 rounded p-4">
+        OCR results will appear here.
+      </div>
+    </div>
+
+    <!-- AI Recommendations -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">AI Findings</h3>
+      <div id="recommendations-output" class="bg-[#F9FAFB] text-sm text-gray-800 border border-gray-200 rounded p-4 space-y-4">
+        Findings and Recommendations will appear here.
+      </div>
+    </div>
+
+    <!-- Detected Measurement Values -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Detected Measurement Values</h3>
+      <div id="detected-measurement-results" class="bg-[#F9FAFB] text-sm text-gray-800 border border-gray-200 rounded p-4 space-y-4">
+        Your measurement values will appear here.
+      </div>
+    </div>    
+
+    <!-- QA Chatbot -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Ask Chatbot</h3>
+      <div id="chat-output" class="space-y-2 h-48 overflow-auto bg-[#FAFBFC] text-sm text-gray-800 border border-gray-200 rounded p-4">
+        <p><strong>Chatbot:</strong> Ask me something about your report</p>
+      </div>
+      <div class="flex mt-4 gap-2">
+        <input type="text" id="user-question" placeholder="Ask a question..." class="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#6B9080]" />
+        <button id="ask-btn" class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F]">Ask</button>
+      </div>
+    </div>
+  </main>
+
+ 
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Replace with your own config when testing cuz i will leave blank -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPhM_Ee7cLzyKHs5zyFy8g5ZOk9-pubRI",
+      authDomain: "login-tutorial-7a9e1.firebaseapp.com",
+      projectId: "login-tutorial-7a9e1",
+      storageBucket: "login-tutorial-7a9e1.firebasestorage.app",
+      messagingSenderId: "491093197824",
+      appId: "1:491093197824:web:9f86659034af7e6a8244e5",
+      measurementId: "G-JM7T9N6ZLZ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+  </script>
+
+  <script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0';
+
+    const loadingEl    = document.getElementById('loading');
+    const textOutput   = document.getElementById('text-output');
+    const recsOutput   = document.getElementById('recommendations-output');
+    const authStatus   = document.getElementById('auth-status');
+    const findingsOutput = document.getElementById('detected-measurement-results')
+    let extractedText  = "";
+    let currentUser    = null;
+
+    document.getElementById('pdf-upload').addEventListener('change', function() {
+      loadingEl.textContent = this.files.length ? `File selected: ${this.files[0].name}` : 'No file uploaded yet.';
+    });
+
+
+    const saveAnalysis = async (uid, payload) => {
+      try {
+        const docRef = await firebase.firestore()
+          .collection('users').doc(uid)
+          .collection('analyses').add({
+            ...payload,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        return docRef.id;
+      } catch (e) {
+        console.error('Failed to save analysis:', e);
+      }
+    };
+
+    const renderRecCard = (rec, idx) => {
+      const sev = (rec.severity || '').toLowerCase();
+      const sevClass = sev.includes('severe') ? 'badge-high' : (sev.includes('moderate') ? 'badge-medium' : 'badge-low');
+      return `
+        <div class="rec-card">
+          <div class="flex items-center justify-between">
+            <h4 class="rec-title">Finding ${idx + 1}: ${rec.findings || 'N/A'}</h4>
+            <span class="rec-badge ${sevClass}">${rec.severity || '—'}</span>
+          </div>
+          <ul class="rec-content space-y-1">
+            <li><em>Recommendations:</em>
+              <ul class="list-disc list-inside ml-6">
+                ${(rec.recommendations || []).map(r => `<li>${r}</li>`).join('')}
+              </ul>
+            </li>
+            <li><em>Treatment:</em> ${rec.treatment_suggestions || 'Not available'}</li>
+            <li><em>Home Care:</em>
+              <ul class="list-disc list-inside ml-6">
+                ${(rec.home_care_guidance || []).map(r => `<li>${r}</li>`).join('')}
+              </ul>
+            </li>
+            ${rec.info_link ? `<li><a href="${rec.info_link}" target="_blank" class="rec-link">Learn more</a></li>` : ''}
+          </ul>
+        </div>
+      `;
+    };
+
+
+    firebase.auth().onAuthStateChanged((user) => {
+      currentUser = user;
+      if (user) {
+        authStatus.textContent = `Signed in as ${user.email || user.uid}`;
+      } else {
+        authStatus.textContent = 'Not signed in. Sign in to save and view past analyses.';
+        pastList.innerHTML = '<p class="text-sm text-gray-500">Sign in to see your saved analyses.</p>';
+      }
+    });
+
+    //Analyze func
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+      const file  = document.getElementById('pdf-upload').files[0];
+      const date  = document.getElementById('report-date').value;
+      if (!file)   { loadingEl.textContent = "Please upload a file first.";  return; }
+      if (!date)   { loadingEl.textContent = "Please select the report date."; return; }
+
+      loadingEl.textContent = "Processing with AI...";
+      textOutput.textContent = "";
+      recsOutput.textContent = "";
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('model', 'bert');
+
+      let data;
+      try {
+        const res = await fetch('http://localhost:9000/analyze/', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error(await res.text());
+        console.log('The Res value is: '+res);
+        data = await res.json();
+        console.log('The output data is: '+data);
+      } catch (err) {
+        console.error(err);
+        loadingEl.textContent = "Error during analysis: " + err.message;
+        return;
+      }
+
+      // OCR text
+      extractedText = data.ocr_text || "";
+      textOutput.textContent = extractedText;
+      console.log('The extractedText Value is: '+extractedText);
+      console.log('The Detected Measurement Value is: '+data.Detected_Anomolies);
+      console.log('The txtxOutput value is: '+textOutput);
+      //recs
+      const recs = Array.isArray(data.Detected_Anomolies) ? data.Detected_Anomolies : (data.Detected_Anomolies ? [data.Detected_Anomolies] : []);
+      console.log("The output is :"+recs);
+      ////recsOutput.innerHTML = data.Detected_Measurement_Values;
+      
+      if (data.Detected_Anomolies) {
+        recsOutput.innerHTML = recs.map((rec, i) => renderRecCard(rec,i)).join('');
+        ////console.log('The data specific value is: '+data.Detected_Anomolies);
+        ////recsOutput.innerHTML = data.Detected_Anomolies;
+      } else {
+        recsOutput.textContent = "No recommendations found.";
+      }
+      
+      const findings = Array.isArray(data.Detected_Measurement_Values) ? data.Detected_Measurement_Values : (data.Detected_Measurement_Values ? [data.Detected_Measurement_Values] : []);
+      console.log("The output is :"+findings);
+      ////recsOutput.innerHTML = data.Detected_Measurement_Values;
+      
+      if (data.Detected_Measurement_Values) {
+        findingsOutput.innerHTML = findings.map((finding, i) => renderRecCard(finding,i)).join('');
+        ////console.log('The data specific value is: '+data.Detected_Anomolies);
+        ////recsOutput.innerHTML = data.Detected_Anomolies;
+      } else {
+        findingsOutput.textContent = "No measurements found.";
+      }
+
+      if (currentUser) {
+        await saveAnalysis(currentUser.uid, {
+          reportDate: date,
+          ocr_text: extractedText,
+          resolutions: recs,
+          measurements: measurements
+        });
+       
+      }
+
+      loadingEl.textContent = "Analysis complete.";
+    });
+
+    // xenova chatbot
+    document.getElementById('ask-btn').onclick = async () => {
+      const q = document.getElementById('user-question').value.trim();
+      if (!q) return;
+      const chat = document.getElementById('chat-output');
+      chat.innerHTML += `<p><strong>You:</strong> ${q}</p>`;
+      chat.scrollTop = chat.scrollHeight;
+      env.allowLocalModels = false;
+      const qa = await pipeline('question-answering','Xenova/distilbert-base-uncased-distilled-squad');
+      const out = await qa(q, extractedText);
+      chat.innerHTML += `<p><strong>Chatbot:</strong> ${out.answer}</p>`;
+      document.getElementById('user-question').value = '';
+      chat.scrollTop = chat.scrollHeight;
+    };
+  </script>
+</body>
+</html>
