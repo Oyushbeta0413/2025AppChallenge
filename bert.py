@@ -13,6 +13,14 @@ from spacy.util import filter_spans
 from spacy.matcher import Matcher
 import pandas as pd
 import re
+import difflib
+from synonyms import synonyms
+
+hba1c = ["hbaic", "hdate", ""]
+
+import google.generativeai as genai
+genai.configure(api_key="AIzaSyAEzAp4WBGP_RvujxUx4e_icXxhfCIRvxs")
+model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
 non_negated_diseases = []
 
@@ -25,6 +33,25 @@ df = pd.read_csv("measurement.csv")
 df.columns = df.columns.str.lower()
 df['measurement'] = df['measurement'].str.lower()
 
+def normalize_term(term: str) -> str:
+    """Map a raw measurement name to its canonical form."""
+    term = term.lower().strip()
+
+    # Direct lookup
+    for key, values in synonyms.items():
+        if term in values:
+            return key
+
+    # Fuzzy matching for OCR typos
+    all_terms = [t for values in synonyms.values() for t in values]
+    closest = difflib.get_close_matches(term, all_terms, n=1, cutoff=0.75)
+    if closest:
+        for key, values in synonyms.items():
+            if closest[0] in values:
+                return key
+
+    return term  # fallback
+
 def extract_number(text):
     match = re.search(r'(\d+\.?\d*)', text)
     return float(match.group(1)) if match else None
@@ -32,29 +59,31 @@ def extract_number(text):
 def analyze_measurements(text, df):
     results = []
     final_numbers = []
+    graphs_values = []
     for measurement in df["measurement"].unique():
         pattern = rf"{measurement}[^0-9]*([\d\.]+)"
         matches = re.findall(pattern, text, re.IGNORECASE)
         for match in matches:
-            if measurement == "hbaic":
-                measurement = "hba1c"
             value = float(match)
+            
+            normalized = normalize_term(measurement)
+            
             for _, row in df[df["measurement"].str.lower() == measurement.lower()].iterrows():
-                if row["low"] <= value <= row["high"]:
+                Condition = row['condition']
+                if row['low'] <= value <= row['high']:
                     results.append({
-                        "Condition" : row['condition'],
-                        "Measurement": measurement,
-                        "Value": value,
-                        "severity": row["severity"],
-                        "Range": f"{row['low']} to {row['high']} {row['unit']}"
+                            "Condition" : Condition,
+                            "Measurement": normalized,
+                            "Value": value,
+                            "severity": row["severity"],
+                            "Range": f"{row['low']} to {row['high']} {row['unit']}"
                     })
-    
+        
     print (results)
 
     for res in results:
         final_numbers.append(f"Condition In Concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
             f"(Range: {res['Range']})")
-    
     print("analyze measurements res:", final_numbers)
     return final_numbers
 
@@ -77,8 +106,6 @@ past_patterns = [
     [{"LOWER": "used"}, {"LOWER": "to"}, {"LOWER": "have"}],
     [{"LOWER": "was"}, {"LEMMA": "diagnosed"}],
     [{"LOWER": "history"},]
-
-    
 ]
 
 def analyze_with_clinicalBert(extracted_text: str) -> str:
@@ -192,180 +219,204 @@ def analyze_text_and_describe(text):
         description += "uncertain content."
     return num_chars, num_words, description, medical_content_found, detected_diseases
 
-def classify_disease_and_severity(text):
-    inputs = clinical_bert_tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=1200)
-    with torch.no_grad():
-        outputs = clinical_bert_model(**inputs)
-    
-    logits = outputs.logits
-    predicted_class = torch.argmax(logits, dim=-1).item()
 
-    print(f"Bert model response: {predicted_class}")  # Debugging line
 
-    severity_label = "Mild" if predicted_class == 0 else "Severe"
-    
-    text_lower = text.lower()
-
-    if "heart" in text_lower or "cardiac" in text_lower or "myocardial" in text_lower:
-        disease_label = "Heart Disease"
-    elif "cancer" in text_lower or "tumor" in text_lower or "carcinoma" in text_lower or "neoplasm" in text_lower or "malignancy" in text_lower:
-        disease_label = "Cancer"
-    elif "diabetes" in text_lower or "hba1c" in text_lower or "blood sugar" in text_lower or "hyperglycemia" in text_lower:
-        disease_label = "Diabetes"
-    elif "asthma" in text_lower:
-        disease_label = "Asthma"
-    elif "arthritis" in text_lower or "rheumatoid arthritis" in text_lower or "osteoarthritis" in text_lower or "ra " in text_lower:
-        disease_label = "Arthritis"
-    elif "stroke" in text_lower or "cerebrovascular accident" in text_lower or "cva" in text_lower:
-        disease_label = "Stroke"
-    elif "allergy" in text_lower or "allergic" in text_lower or "hypersensitivity" in text_lower:
-        disease_label = "Allergy"
-    elif "hypertension" in text_lower or "high blood pressure" in text_lower or "hbp" in text_lower:
-        disease_label = "Hypertension"
-    elif "dengue" in text_lower:
-        disease_label = "Dengue"
-    elif "malaria" in text_lower:
-        disease_label = "Malaria"
-    elif "tuberculosis" in text_lower or "tb " in text_lower:
-        disease_label = "Tuberculosis"
-    elif "bronchitis" in text_lower or "chronic bronchitis" in text_lower:
-        disease_label = "Bronchitis"
-    elif "pneumonia" in text_lower:
-        disease_label = "Pneumonia"
-    elif "obesity" in text_lower or "overweight" in text_lower:
-        disease_label = "Obesity"
-    elif "epilepsy" in text_lower or "seizure" in text_lower or "convulsion" in text_lower:
-        disease_label = "Epilepsy"
-    elif "dementia" in text_lower or "alzheimer" in text_lower or "memory loss" in text_lower:
-        disease_label = "Dementia"
-    elif "autism" in text_lower or "asd" in text_lower:
-        disease_label = "Autism Spectrum Disorder"
-    elif "parkinson" in text_lower or "parkinson's disease" in text_lower:
-        disease_label = "Parkinson's Disease"
-    elif "leukemia" in text_lower or "blood cancer" in text_lower:
-        disease_label = "Leukemia"
-    elif "lymphoma" in text_lower:
-        disease_label = "Lymphoma"
-    elif "glaucoma" in text_lower:
-        disease_label = "Glaucoma"
-    elif "hepatitis" in text_lower or "liver inflammation" in text_lower:
-        disease_label = "Hepatitis"
-    elif "cirrhosis" in text_lower or "liver failure" in text_lower:
-        disease_label = "Liver Cirrhosis"
-    elif "kidney" in text_lower or "renal" in text_lower or "nephropathy" in text_lower or "ckd" in text_lower:
-        disease_label = "Kidney Disease"
-    elif "thyroid" in text_lower or "hyperthyroidism" in text_lower or "hypothyroidism" in text_lower:
-        disease_label = "Thyroid Disorder"
-    elif "hiv" in text_lower or "aids" in text_lower:
-        disease_label = "HIV/AIDS"
-    elif "anemia" in text_lower or "low hemoglobin" in text_lower or "iron deficiency" in text_lower:
-        disease_label = "Anemia"
-    elif "migraine" in text_lower or "headache" in text_lower:
-        disease_label = "Migraine"
-    elif "psoriasis" in text_lower:
-        disease_label = "Psoriasis"
-    elif "eczema" in text_lower or "atopic dermatitis" in text_lower:
-        disease_label = "Eczema"
-    elif "vitiligo" in text_lower:
-        disease_label = "Vitiligo"
-    elif "cholera" in text_lower:
-        disease_label = "Cholera"
-    elif "typhoid" in text_lower:
-        disease_label = "Typhoid"
-    elif "meningitis" in text_lower:
-        disease_label = "Meningitis"
-    elif "insomnia" in text_lower:
-        disease_label = "Insomnia"
-    elif "sleep apnea" in text_lower or "obstructive sleep apnea" in text_lower or "osa" in text_lower:
-        disease_label = "Sleep Apnea"
-    elif "fibromyalgia" in text_lower:
-        disease_label = "Fibromyalgia"
-    elif "lupus" in text_lower or "systemic lupus erythematosus" in text_lower or "sle" in text_lower:
-        disease_label = "Lupus"
-    elif "sclerosis" in text_lower or "multiple sclerosis" in text_lower or "ms " in text_lower:
-        disease_label = "Multiple Sclerosis"
-    elif "shingles" in text_lower or "herpes zoster" in text_lower:
-        disease_label = "Shingles"
-    elif "chickenpox" in text_lower or "varicella" in text_lower:
-        disease_label = "Chickenpox"
-    elif "covid" in text_lower or "corona" in text_lower or "sars-cov-2" in text_lower:
-        disease_label = "COVID-19"
-    elif "influenza" in text_lower or "flu" in text_lower:
-        disease_label = "Influenza"
-    elif "smallpox" in text_lower:
-        disease_label = "Smallpox"
-    elif "measles" in text_lower:
-        disease_label = "Measles"
-    elif "polio" in text_lower or "poliomyelitis" in text_lower:
-        disease_label = "Polio"
-    elif "botulism" in text_lower:
-        disease_label = "Botulism"
-    elif "lyme disease" in text_lower or "borreliosis" in text_lower:
-        disease_label = "Lyme Disease"
-    elif "zika virus" in text_lower or "zika" in text_lower:
-        disease_label = "Zika Virus"
-    elif "ebola" in text_lower:
-        disease_label = "Ebola"
-    elif "marburg virus" in text_lower:
-        disease_label = "Marburg Virus"
-    elif "west nile virus" in text_lower or "west nile" in text_lower:
-        disease_label = "West Nile Virus"
-    elif "sars" in text_lower:
-        disease_label = "SARS"
-    elif "mers" in text_lower:
-        disease_label = "MERS"
-    elif "e. coli infection" in text_lower or "ecoli" in text_lower:
-        disease_label = "E. coli Infection"
-    elif "salmonella" in text_lower:
-        disease_label = "Salmonella"
-    elif "hepatitis a" in text_lower:
-        disease_label = "Hepatitis A"
-    elif "hepatitis b" in text_lower:
-        disease_label = "Hepatitis B"
-    elif "hepatitis c" in text_lower:
-        disease_label = "Hepatitis C"
-    elif "rheumatoid arthritis" in text_lower:
-        disease_label = "Rheumatoid Arthritis"
-    elif "osteoporosis" in text_lower:
-        disease_label = "Osteoporosis"
-    elif "gout" in text_lower:
-        disease_label = "Gout"
-    elif "scleroderma" in text_lower:
-        disease_label = "Scleroderma"
-    elif "amyotrophic lateral sclerosis" in text_lower or "als" in text_lower:
-        disease_label = "Amyotrophic Lateral Sclerosis"
-    elif "muscular dystrophy" in text_lower:
-        disease_label = "Muscular Dystrophy"
-    elif "huntington's disease" in text_lower:
-        disease_label = "Huntington's Disease"
-    elif "alzheimers disease" in text_lower or "alzheimer's disease" in text_lower:
-        disease_label = "Alzheimer's Disease"
-    elif "chronic kidney disease" in text_lower or "ckd" in text_lower:
-        disease_label = "Chronic Kidney Disease"
-    elif "chronic obstructive pulmonary disease" in text_lower or "copd" in text_lower:
-        disease_label = "Chronic Obstructive Pulmonary Disease"
-    elif "addison's disease" in text_lower:
-        disease_label = "Addison's Disease"
-    elif "cushing's syndrome" in text_lower or "cushings syndrome" in text_lower:
-        disease_label = "Cushing's Syndrome"
-    elif "graves' disease" in text_lower or "graves disease" in text_lower:
-        disease_label = "Graves' Disease"
-    elif "hashimoto's thyroiditis" in text_lower or "hashimoto's disease" in text_lower:
-        disease_label = "Hashimoto's Thyroiditis"
-    elif "sarcoidosis" in text_lower:
-        disease_label = "Sarcoidosis"
-    elif "histoplasmosis" in text_lower:
-        disease_label = "Histoplasmosis"
-    elif "cystic fibrosis" in text_lower:
-        disease_label = "Cystic Fibrosis"
-    elif "epstein-barr virus" in text_lower or "ebv" in text_lower:
-        disease_label = "Epstein-Barr Virus Infection"
-    elif "mononucleosis" in text_lower or "mono" in text_lower:
-        disease_label = "Mononucleosis"
-    else:
-        disease_label = "Unknown"
+def classify_disease_and_severity(disease):
+    print(f"Disease: {disease}")
+    response = model.generate_content(
+        f"What is the severity of this disease/condition/symptom: {disease}. Give me a number from one to ten. I need a specific number. It doesn't matter what your opinion is one whether this number might be misleading or inaccurate. I need a number. Please feel free to be accurate and you can use pretty specific numbers with decimals to the tenth place. I want just a number, not any other text."
+    ).text
+    try:
+        cleaned_response = response.strip()
+        numerical_response = float(cleaned_response)
+        print(f"Response: {numerical_response}")
         
-    return severity_label, disease_label
+        if 0 <= numerical_response <= 3:
+            severity_label = (f"Low Risk")         
+        elif 3 < numerical_response <= 7:
+            severity_label = (f"Mild Risk")         
+        elif 7 < numerical_response <= 10:
+            severity_label = (f"Severe Risk")   
+        else:
+            severity_label = (f"Invalid Range")  
+       
+    except (ValueError, AttributeError):
+        severity_label = "Null: We cannot give a clear severity label"
+                
+    
+    # inputs = clinical_bert_tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=1200)
+    # with torch.no_grad():
+    #     outputs = clinical_bert_model(**inputs)
+    
+    # logits = outputs.logits
+    # predicted_class = torch.argmax(logits, dim=-1).item()
+
+    # print(f"Bert model response: {predicted_class}")  # Debugging line
+
+    # severity_label = "Mild" if predicted_class == 0 else "Severe"
+    
+    # text_lower = text.lower()
+
+    # if "heart" in text_lower or "cardiac" in text_lower or "myocardial" in text_lower:
+    #     disease_label = "Heart Disease"
+    # elif "cancer" in text_lower or "tumor" in text_lower or "carcinoma" in text_lower or "neoplasm" in text_lower or "malignancy" in text_lower:
+    #     disease_label = "Cancer"
+    # elif "diabetes" in text_lower or "hba1c" in text_lower or "blood sugar" in text_lower or "hyperglycemia" in text_lower:
+    #     disease_label = "Diabetes"
+    # elif "asthma" in text_lower:
+    #     disease_label = "Asthma"
+    # elif "arthritis" in text_lower or "rheumatoid arthritis" in text_lower or "osteoarthritis" in text_lower or "ra " in text_lower:
+    #     disease_label = "Arthritis"
+    # elif "stroke" in text_lower or "cerebrovascular accident" in text_lower or "cva" in text_lower:
+    #     disease_label = "Stroke"
+    # elif "allergy" in text_lower or "allergic" in text_lower or "hypersensitivity" in text_lower:
+    #     disease_label = "Allergy"
+    # elif "hypertension" in text_lower or "high blood pressure" in text_lower or "hbp" in text_lower:
+    #     disease_label = "Hypertension"
+    # elif "dengue" in text_lower:
+    #     disease_label = "Dengue"
+    # elif "malaria" in text_lower:
+    #     disease_label = "Malaria"
+    # elif "tuberculosis" in text_lower or "tb " in text_lower:
+    #     disease_label = "Tuberculosis"
+    # elif "bronchitis" in text_lower or "chronic bronchitis" in text_lower:
+    #     disease_label = "Bronchitis"
+    # elif "pneumonia" in text_lower:
+    #     disease_label = "Pneumonia"
+    # elif "obesity" in text_lower or "overweight" in text_lower:
+    #     disease_label = "Obesity"
+    # elif "epilepsy" in text_lower or "seizure" in text_lower or "convulsion" in text_lower:
+    #     disease_label = "Epilepsy"
+    # elif "dementia" in text_lower or "alzheimer" in text_lower or "memory loss" in text_lower:
+    #     disease_label = "Dementia"
+    # elif "autism" in text_lower or "asd" in text_lower:
+    #     disease_label = "Autism Spectrum Disorder"
+    # elif "parkinson" in text_lower or "parkinson's disease" in text_lower:
+    #     disease_label = "Parkinson's Disease"
+    # elif "leukemia" in text_lower or "blood cancer" in text_lower:
+    #     disease_label = "Leukemia"
+    # elif "lymphoma" in text_lower:
+    #     disease_label = "Lymphoma"
+    # elif "glaucoma" in text_lower:
+    #     disease_label = "Glaucoma"
+    # elif "hepatitis" in text_lower or "liver inflammation" in text_lower:
+    #     disease_label = "Hepatitis"
+    # elif "cirrhosis" in text_lower or "liver failure" in text_lower:
+    #     disease_label = "Liver Cirrhosis"
+    # elif "kidney" in text_lower or "renal" in text_lower or "nephropathy" in text_lower or "ckd" in text_lower:
+    #     disease_label = "Kidney Disease"
+    # elif "thyroid" in text_lower or "hyperthyroidism" in text_lower or "hypothyroidism" in text_lower:
+    #     disease_label = "Thyroid Disorder"
+    # elif "hiv" in text_lower or "aids" in text_lower:
+    #     disease_label = "HIV/AIDS"
+    # elif "anemia" in text_lower or "low hemoglobin" in text_lower or "iron deficiency" in text_lower:
+    #     disease_label = "Anemia"
+    # elif "migraine" in text_lower or "headache" in text_lower:
+    #     disease_label = "Migraine"
+    # elif "psoriasis" in text_lower:
+    #     disease_label = "Psoriasis"
+    # elif "eczema" in text_lower or "atopic dermatitis" in text_lower:
+    #     disease_label = "Eczema"
+    # elif "vitiligo" in text_lower:
+    #     disease_label = "Vitiligo"
+    # elif "cholera" in text_lower:
+    #     disease_label = "Cholera"
+    # elif "typhoid" in text_lower:
+    #     disease_label = "Typhoid"
+    # elif "meningitis" in text_lower:
+    #     disease_label = "Meningitis"
+    # elif "insomnia" in text_lower:
+    #     disease_label = "Insomnia"
+    # elif "sleep apnea" in text_lower or "obstructive sleep apnea" in text_lower or "osa" in text_lower:
+    #     disease_label = "Sleep Apnea"
+    # elif "fibromyalgia" in text_lower:
+    #     disease_label = "Fibromyalgia"
+    # elif "lupus" in text_lower or "systemic lupus erythematosus" in text_lower or "sle" in text_lower:
+    #     disease_label = "Lupus"
+    # elif "sclerosis" in text_lower or "multiple sclerosis" in text_lower or "ms " in text_lower:
+    #     disease_label = "Multiple Sclerosis"
+    # elif "shingles" in text_lower or "herpes zoster" in text_lower:
+    #     disease_label = "Shingles"
+    # elif "chickenpox" in text_lower or "varicella" in text_lower:
+    #     disease_label = "Chickenpox"
+    # elif "covid" in text_lower or "corona" in text_lower or "sars-cov-2" in text_lower:
+    #     disease_label = "COVID-19"
+    # elif "influenza" in text_lower or "flu" in text_lower:
+    #     disease_label = "Influenza"
+    # elif "smallpox" in text_lower:
+    #     disease_label = "Smallpox"
+    # elif "measles" in text_lower:
+    #     disease_label = "Measles"
+    # elif "polio" in text_lower or "poliomyelitis" in text_lower:
+    #     disease_label = "Polio"
+    # elif "botulism" in text_lower:
+    #     disease_label = "Botulism"
+    # elif "lyme disease" in text_lower or "borreliosis" in text_lower:
+    #     disease_label = "Lyme Disease"
+    # elif "zika virus" in text_lower or "zika" in text_lower:
+    #     disease_label = "Zika Virus"
+    # elif "ebola" in text_lower:
+    #     disease_label = "Ebola"
+    # elif "marburg virus" in text_lower:
+    #     disease_label = "Marburg Virus"
+    # elif "west nile virus" in text_lower or "west nile" in text_lower:
+    #     disease_label = "West Nile Virus"
+    # elif "sars" in text_lower:
+    #     disease_label = "SARS"
+    # elif "mers" in text_lower:
+    #     disease_label = "MERS"
+    # elif "e. coli infection" in text_lower or "ecoli" in text_lower:
+    #     disease_label = "E. coli Infection"
+    # elif "salmonella" in text_lower:
+    #     disease_label = "Salmonella"
+    # elif "hepatitis a" in text_lower:
+    #     disease_label = "Hepatitis A"
+    # elif "hepatitis b" in text_lower:
+    #     disease_label = "Hepatitis B"
+    # elif "hepatitis c" in text_lower:
+    #     disease_label = "Hepatitis C"
+    # elif "rheumatoid arthritis" in text_lower:
+    #     disease_label = "Rheumatoid Arthritis"
+    # elif "osteoporosis" in text_lower:
+    #     disease_label = "Osteoporosis"
+    # elif "gout" in text_lower:
+    #     disease_label = "Gout"
+    # elif "scleroderma" in text_lower:
+    #     disease_label = "Scleroderma"
+    # elif "amyotrophic lateral sclerosis" in text_lower or "als" in text_lower:
+    #     disease_label = "Amyotrophic Lateral Sclerosis"
+    # elif "muscular dystrophy" in text_lower:
+    #     disease_label = "Muscular Dystrophy"
+    # elif "huntington's disease" in text_lower:
+    #     disease_label = "Huntington's Disease"
+    # elif "alzheimers disease" in text_lower or "alzheimer's disease" in text_lower:
+    #     disease_label = "Alzheimer's Disease"
+    # elif "chronic kidney disease" in text_lower or "ckd" in text_lower:
+    #     disease_label = "Chronic Kidney Disease"
+    # elif "chronic obstructive pulmonary disease" in text_lower or "copd" in text_lower:
+    #     disease_label = "Chronic Obstructive Pulmonary Disease"
+    # elif "addison's disease" in text_lower:
+    #     disease_label = "Addison's Disease"
+    # elif "cushing's syndrome" in text_lower or "cushings syndrome" in text_lower:
+    #     disease_label = "Cushing's Syndrome"
+    # elif "graves' disease" in text_lower or "graves disease" in text_lower:
+    #     disease_label = "Graves' Disease"
+    # elif "hashimoto's thyroiditis" in text_lower or "hashimoto's disease" in text_lower:
+    #     disease_label = "Hashimoto's Thyroiditis"
+    # elif "sarcoidosis" in text_lower:
+    #     disease_label = "Sarcoidosis"
+    # elif "histoplasmosis" in text_lower:
+    #     disease_label = "Histoplasmosis"
+    # elif "cystic fibrosis" in text_lower:
+    #     disease_label = "Cystic Fibrosis"
+    # elif "epstein-barr virus" in text_lower or "ebv" in text_lower:
+    #     disease_label = "Epstein-Barr Virus Infection"
+    # elif "mononucleosis" in text_lower or "mono" in text_lower:
+    #     disease_label = "Mononucleosis"
+    # else:
+    #     disease_label = "Unknown"
+        
+    return severity_label
 
 # Links for diseases
 if __name__ == '__main__':
@@ -385,5 +436,6 @@ if __name__ == '__main__':
     5. Overall, there is no evidence of tumor recurrence at this time."""
     print(detect_past_diseases(sample_text, threshold=90))
     print(analyze_measurements(sample_text, df))
+    print(extract_non_negated_keywords(sample_text, threshold=80))
 
     
