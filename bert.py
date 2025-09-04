@@ -83,7 +83,7 @@ def analyze_measurements(text, df):
 
     for res in results:
         final_numbers.append(f"Condition In Concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
-            f"(Range: {res['Range']})")
+            f"(Range: {res['Range']})")                
     print("analyze measurements res:", final_numbers)
     return final_numbers
 
