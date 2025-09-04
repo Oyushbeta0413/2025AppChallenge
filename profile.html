@@ -5,342 +5,424 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Profile - CTRL + ALT + HEAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --tropical-indigo: rgb(120, 187, 242);
+        --wisteria: rgb(197, 217, 251);
+        --latte-cream: #ffffff;
+      }
+      body {
+        font-family: "Rubik", sans-serif;
+        background: linear-gradient(to bottom, #fefefe, #e6f0fa);
+        color: #333;
+      }
+      .btn-primary {
+        background-color: var(--tropical-indigo);
+        color: white;
+        transition: 0.3s;
+      }
+      .btn-primary:hover {
+        background-color: var(--wisteria);
+        color: #333;
+      }
+      .avatar {
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        object-fit: cover;
+        cursor: pointer;
+        background-color: #e5e7eb;
+        transition: transform 0.3s;
+      }
+      .avatar:hover {
+        transform: scale(1.05);
+      }
+      .card {
+        background-color: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        transition: 0.3s;
+      }
+      .card:hover {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      }
+    </style>
   </head>
-  <body class="bg-[#F7F8F9] text-gray-800 min-h-screen">
+  <body class="text-gray-800 min-h-screen flex flex-col">
     <!-- Navbar -->
-    <nav class="bg-white border border-gray-200 px-6 py-4 mb-6">
-      <div class="container mx-auto flex justify-between items-center">
-        <a href="index.html" class="text-2xl font-bold text-[#6B9080]"
-          >CTRL + ALT + HEAL</a
+    <nav
+      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
+    >
+      <div
+        class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <a
+          href="index.html"
+          class="text-2xl font-bold hover:text-[var(--tropical-indigo)] transition"
         >
-        <ul class="flex space-x-6 text-sm font-medium text-gray-700">
-          <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
-          <li>
-            <a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a>
-          </li>
-          <li>
-            <a href="profile.html" class="hover:text-[#6B9080]">Profile</a>
-          </li>
-          <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
-          <li>
-            <a href="about.html" class="hover:text-[#6B9080]">About Us</a>
-          </li>
+          CTRL + ALT + HEAL
+        </a>
+        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="analyzer.html">Analyzer</a></li>
+          <li><a href="profile.html">Profile</a></li>
+          <li><a href="login.html">Logout</a></li>
+          <li><a href="about.html">About</a></li>
         </ul>
+        <button
+          id="hamburger"
+          class="md:hidden text-2xl"
+          aria-label="Toggle menu"
+        >
+          ☰
+        </button>
       </div>
     </nav>
 
-    <div class="container mx-auto px-6">
-      <!-- VIEW MODE -->
-      <div id="profileViewSection">
-        <div class="flex items-start space-x-6 mb-10">
-          <!-- Avatar & Edit Button -->
-          <div class="flex flex-col items-center">
-            <div class="w-32 h-32 bg-gray-300 rounded-full"></div>
-            <button
-              id="editProfileBtn"
-              class="mt-2 bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-            >
-              Edit Profile
-            </button>
-          </div>
+    <main class="flex-grow container mx-auto px-6 pt-28 space-y-8">
+      <!-- Welcome -->
+      <section class="card text-center py-12">
+        <h2 class="text-3xl font-bold text-[var(--tropical-indigo)] mb-2">
+          Welcome to CTRL + ALT + HEAL! 🎉
+        </h2>
+        <p class="text-gray-700 mb-2">
+          Track progress, crush goals, and vibe with your health journey.
+        </p>
+      </section>
 
-          <!-- User Info -->
-          <div>
-            <h1 class="text-3xl font-semibold text-gray-800 mb-4">
-              Your Profile
-            </h1>
-            <p class="text-gray-700 mb-2">
-              Name: <span id="userName" class="font-medium"></span>
-            </p>
-            <p class="text-gray-700 mb-2">
-              DOB: <span id="userDOB" class="font-medium"></span>
-            </p>
-            <!-- <p class="text-gray-700 mb-2">
-              Big Things We Should Fix:
-              <span id="userFix" class="font-medium"></span>
-            </p>
-            <p class="text-gray-700 mb-6">
-              Health Goals: <span id="userGoals" class="font-medium"></span>
-            </p> -->
-          </div>
-        </div>
-      </div>
-
-      <!-- EDIT MODE -->
-      <div id="profileEditSection" class="hidden mb-10">
-        <div class="flex flex-col sm:flex-row items-start space-x-6">
-          <!-- Avatar Placeholder -->
-          <div class="flex flex-col items-center mb-4 sm:mb-0">
-            <div class="w-32 h-32 bg-gray-300 rounded-full"></div>
-          </div>
-          <!-- Edit Form -->
-          <div class="flex-1">
-            <h1 class="text-3xl font-semibold text-gray-800 mb-4">
-              Edit Profile
-            </h1>
-            <div class="space-y-4">
-              <div>
-                <label
-                  for="inputName"
-                  class="block text-sm font-medium text-gray-600"
-                  >Name</label
-                >
-                <input
-                  type="text"
-                  id="inputName"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
+      <!-- Profile + Stats -->
+      <section class="flex flex-col lg:flex-row gap-6">
+        <!-- LEFT: Profile -->
+        <div class="flex-1 flex flex-col gap-6">
+          <!-- Profile View -->
+          <div id="profileViewSection" class="card flex flex-col gap-4">
+            <div class="flex flex-col lg:flex-row gap-6 items-start">
+              <div class="flex flex-col items-center space-y-4">
+                <img
+                  id="profilePic"
+                  class="avatar"
+                  src=""
+                  alt="Profile Picture"
                 />
-              </div>
-              <div>
-                <label
-                  for="inputDOB"
-                  class="block text-sm font-medium text-gray-600"
-                  >Date of Birth</label
-                >
                 <input
-                  type="date"
-                  id="inputDOB"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
+                  type="file"
+                  id="fileInput"
+                  accept="image/*"
+                  class="hidden"
                 />
-              </div>
-              <!-- <div>
-                <label
-                  for="inputFix"
-                  class="block text-sm font-medium text-gray-600"
-                  >Big Things We Should Fix</label
+                <button
+                  id="editProfileBtn"
+                  class="btn-primary px-4 py-2 rounded"
                 >
-                <textarea
-                  id="inputFix"
-                  rows="2"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-                ></textarea>
+                  Edit Profile
+                </button>
               </div>
-              <div>
-                <label
-                  for="inputGoals"
-                  class="block text-sm font-medium text-gray-600"
-                  >Health Goals</label
-                > -->
-                <textarea
-                  id="inputGoals"
-                  rows="2"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-                ></textarea>
+              <div class="flex-1 flex flex-col space-y-2">
+                <h1 class="text-3xl font-semibold">Your Profile</h1>
+                <p>Name: <span id="userName" class="font-medium"></span></p>
+                <p>DOB: <span id="userDOB" class="font-medium"></span></p>
+                <p>
+                  Big Things We Should Fix:
+                  <span id="userFix" class="font-medium"></span>
+                </p>
+                <p>
+                  Health Goals: <span id="userGoals" class="font-medium"></span>
+                </p>
+                <p>
+                  Bio:
+                  <span id="userBio" class="font-medium">No bio yet 📝</span>
+                </p>
               </div>
             </div>
-            <div class="flex space-x-2 mt-4">
-              <button
-                id="saveProfileBtn"
-                class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-              >
-                Save
-              </button>
-              <button
-                id="cancelProfileBtn"
-                class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
-              >
-                Cancel
-              </button>
+          </div>
+
+          <!-- Profile Edit -->
+          <div id="profileEditSection" class="hidden card flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row items-start gap-6">
+              <div class="flex flex-col items-center">
+                <img
+                  id="editProfilePic"
+                  class="avatar"
+                  src=""
+                  alt="Profile Picture"
+                />
+                <input
+                  type="file"
+                  id="editFileInput"
+                  accept="image/*"
+                  class="hidden"
+                />
+              </div>
+              <div class="flex-1">
+                <h1 class="text-3xl font-semibold mb-4">Edit Profile</h1>
+                <div class="space-y-4">
+                  <div>
+                    <label
+                      for="inputName"
+                      class="block text-sm font-medium text-gray-600"
+                      >Name</label
+                    >
+                    <input
+                      type="text"
+                      id="inputName"
+                      class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="inputDOB"
+                      class="block text-sm font-medium text-gray-600"
+                      >Date of Birth</label
+                    >
+                    <input
+                      type="date"
+                      id="inputDOB"
+                      class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="inputFix"
+                      class="block text-sm font-medium text-gray-600"
+                      >Big Things We Should Fix</label
+                    >
+                    <textarea
+                      id="inputFix"
+                      rows="2"
+                      class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    ></textarea>
+                  </div>
+                  <div>
+                    <label
+                      for="inputGoals"
+                      class="block text-sm font-medium text-gray-600"
+                      >Health Goals</label
+                    >
+                    <textarea
+                      id="inputGoals"
+                      rows="2"
+                      class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    ></textarea>
+                  </div>
+                </div>
+                <div class="flex space-x-2 mt-4">
+                  <button
+                    id="saveProfileBtn"
+                    class="btn-primary px-4 py-2 rounded"
+                  >
+                    Save
+                  </button>
+                  <button
+                    id="cancelProfileBtn"
+                    class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- RIGHT: Health Journey -->
+        <div class="w-full lg:w-1/3 card">
+          <h3 class="text-lg font-semibold text-[var(--tropical-indigo)] mb-3">
+            Your Health Journey 🩺
+          </h3>
+          <p id="healthJourneySummary" class="text-gray-700 italic">
+            Loading your health story...
+          </p>
+        </div>
+      </section>
+
+      <!-- Reports Section -->
+      <div class="max-w-6xl mx-auto px-6">
+        <button
+          class="bg-gray-200 px-4 py-2 rounded mb-4"
+          onclick="toggleReports()"
+        >
+          Show Reports
+        </button>
+        <div
+          id="reportsSection"
+          class="hidden grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+        >
+          <!-- Report cards injected here -->
+        </div>
       </div>
+    </main>
 
-
-      <!-- Chart Section -->
-      <div class="mt-10" id="chartSection">
-        <!-- Card Wrapper -->
-        <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">
-            Health Progress
-          </h2>
-
-          <!-- Controls Row -->
-          <div
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
+    <footer class="mt-auto py-6 bg-[var(--wisteria)] text-gray-800">
+      <div
+        class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm"
+      >
+        <p>&copy; 2025 CTRL + ALT + HEAL. All rights reserved.</p>
+        <div class="flex space-x-4 mt-3 md:mt-0">
+          <a href="#" class="hover:text-[var(--tropical-indigo)] transition"
+            >Privacy Policy</a
           >
-            <!-- Date & Score Inputs -->
-            <div class="flex flex-1 gap-2">
-              <input
-                type="date"
-                id="entryDate"
-                class="flex-1 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-              />
-              <input
-                type="number"
-                id="entryScore"
-                min="0"
-                max="100"
-                placeholder="Score"
-                class="w-24 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-              />
-            </div>
-            <!-- Buttons -->
-            <div class="flex gap-2">
-              <button
-                id="addEntryBtn"
-                class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-              >
-                Add Entry
-              </button>
-              <button
-                id="resetChartBtn"
-                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-              >
-                Reset Chart
-              </button>
-            </div>
-          </div>
-
-          <!-- Chart Canvas -->
-          <div class="overflow-x-auto">
-            <canvas id="progressChart" class="w-full h-64"></canvas>
-          </div>
+          <a href="#" class="hover:text-[var(--tropical-indigo)] transition"
+            >Terms of Service</a
+          >
         </div>
       </div>
-    </div>
+    </footer>
 
     <script>
-      // Storage helpers
-      function loadProgressData() {
-        return JSON.parse(localStorage.getItem("progressData") || "[]");
+      // Profile JS
+      const profileView = document.getElementById("profileViewSection");
+      const profileEdit = document.getElementById("profileEditSection");
+      const editBtn = document.getElementById("editProfileBtn");
+      const saveBtn = document.getElementById("saveProfileBtn");
+      const cancelBtn = document.getElementById("cancelProfileBtn");
+      const profilePic = document.getElementById("profilePic");
+      const editProfilePic = document.getElementById("editProfilePic");
+      const fileInput = document.getElementById("fileInput");
+      const editFileInput = document.getElementById("editFileInput");
+
+      function handleFileUpload(file, targetImg) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          targetImg.src = reader.result;
+          localStorage.setItem("profilePic", reader.result);
+        };
+        reader.readAsDataURL(file);
       }
-      function saveProgressData(data) {
-        localStorage.setItem("progressData", JSON.stringify(data));
-      }
-      function resetProgressData() {
-        localStorage.removeItem("progressData");
+
+      fileInput.addEventListener(
+        "change",
+        (e) =>
+          e.target.files[0] && handleFileUpload(e.target.files[0], profilePic)
+      );
+      editFileInput.addEventListener(
+        "change",
+        (e) =>
+          e.target.files[0] &&
+          handleFileUpload(e.target.files[0], editProfilePic)
+      );
+
+      editBtn.addEventListener("click", () => {
+        document.getElementById("inputName").value =
+          localStorage.getItem("userName") || "";
+        document.getElementById("inputDOB").value =
+          localStorage.getItem("userDOB") || "";
+        document.getElementById("inputFix").value =
+          localStorage.getItem("userFix") || "";
+        document.getElementById("inputGoals").value =
+          localStorage.getItem("userGoals") || "";
+        profileView.classList.add("hidden");
+        profileEdit.classList.remove("hidden");
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        profileEdit.classList.add("hidden");
+        profileView.classList.remove("hidden");
+      });
+
+      saveBtn.addEventListener("click", () => {
+        localStorage.setItem(
+          "userName",
+          document.getElementById("inputName").value.trim()
+        );
+        localStorage.setItem(
+          "userDOB",
+          document.getElementById("inputDOB").value
+        );
+        localStorage.setItem(
+          "userFix",
+          document.getElementById("inputFix").value.trim()
+        );
+        localStorage.setItem(
+          "userGoals",
+          document.getElementById("inputGoals").value.trim()
+        );
+
+        document.getElementById("userName").textContent =
+          localStorage.getItem("userName") || "Name";
+        document.getElementById("userDOB").textContent =
+          localStorage.getItem("userDOB") || "DOB";
+        document.getElementById("userFix").textContent =
+          localStorage.getItem("userFix") || "None set";
+        document.getElementById("userGoals").textContent =
+          localStorage.getItem("userGoals") || "None set";
+
+        profileEdit.classList.add("hidden");
+        profileView.classList.remove("hidden");
+      });
+
+      async function generateHealthJourney() {
+        try {
+          const response = await fetch("/summary?user_id=12345");
+          if (!response.ok) throw new Error("Failed to fetch summary");
+          const data = await response.json();
+          document.getElementById("healthJourneySummary").textContent =
+            data.summary;
+        } catch {
+          document.getElementById("healthJourneySummary").textContent =
+            "Couldn't load your summary. Check back later! 🩺";
+        }
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        // Profile View Populate
         document.getElementById("userName").textContent =
-          localStorage.getItem("userName") || "name";
+          localStorage.getItem("userName") || "Name";
         document.getElementById("userDOB").textContent =
           localStorage.getItem("userDOB") || "DOB";
-        // document.getElementById("userFix").textContent =
-        //   localStorage.getItem("userFix") || "None set";
-        // document.getElementById("userGoals").textContent =
-        //   localStorage.getItem("userGoals") || "None set";
-
-        const profileView = document.getElementById("profileViewSection");
-        const profileEdit = document.getElementById("profileEditSection");
-        const editBtn = document.getElementById("editProfileBtn");
-        const saveBtn = document.getElementById("saveProfileBtn");
-        const cancelBtn = document.getElementById("cancelProfileBtn");
-        const inputName = document.getElementById("inputName");
-        const inputDOB = document.getElementById("inputDOB");
-        // const inputFix = document.getElementById("inputFix");
-        // const inputGoals = document.getElementById("inputGoals");
-
-        editBtn.addEventListener("click", () => {
-          inputName.value = localStorage.getItem("userName") || "";
-          inputDOB.value = localStorage.getItem("userDOB") || "";
-          // inputFix.value = localStorage.getItem("userFix") || "";
-          // inputGoals.value = localStorage.getItem("userGoals") || "";
-          profileView.classList.add("hidden");
-          profileEdit.classList.remove("hidden");
-        });
-
-        cancelBtn.addEventListener("click", () => {
-          profileEdit.classList.add("hidden");
-          profileView.classList.remove("hidden");
-        });
-
-        saveBtn.addEventListener("click", () => {
-          const nameVal = inputName.value.trim();
-          const dobVal = inputDOB.value;
-          const fixVal = inputFix.value.trim();
-          const goalsVal = inputGoals.value.trim();
-          localStorage.setItem("userName", nameVal);
-          localStorage.setItem("userDOB", dobVal);
-          localStorage.setItem("userFix", fixVal);
-          localStorage.setItem("userGoals", goalsVal);
-          document.getElementById("userName").textContent = nameVal || "Name";
-          document.getElementById("userDOB").textContent = dobVal || "DOB";
-          document.getElementById("userFix").textContent = fixVal || "None set";
-          document.getElementById("userGoals").textContent =
-            goalsVal || "None set";
-          profileEdit.classList.add("hidden");
-          profileView.classList.remove("hidden");
-        });
-
-        // === NEW USER WELCOME / CHART LOGIC ===
-        const chartSection = document.getElementById("chartSection");
-        const welcomeMessage = document.getElementById("welcomeMessage");
-        const isNewUser = localStorage.getItem("isNewUser") === "true";
-
-        if (isNewUser) {
-          welcomeMessage.classList.remove("hidden");
-          chartSection.classList.add("hidden");
+        document.getElementById("userFix").textContent =
+          localStorage.getItem("userFix") || "None set";
+        document.getElementById("userGoals").textContent =
+          localStorage.getItem("userGoals") || "None set";
+        const savedPic = localStorage.getItem("profilePic");
+        if (savedPic) {
+          profilePic.src = savedPic;
+          editProfilePic.src = savedPic;
         }
+        generateHealthJourney();
+      });
 
-        // Chart.js logic
-        const stored = loadProgressData();
-        const labels = stored.map((e) => e.date);
-        const dataPoints = stored.map((e) => e.score);
-        const ctx = document.getElementById("progressChart").getContext("2d");
-        const progressChart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "Health Score",
-                data: dataPoints,
-                borderColor: "#6B9080",
-                backgroundColor: "rgba(164,195,178,0.4)",
-                fill: true,
-                tension: 0.4,
-              },
-            ],
-          },
-          options: {
-            scales: { y: { beginAtZero: true, max: 100 } },
-          },
+      // Reports
+      const fakeReports = [
+        {
+          date: "July 15, 2025",
+          summary: "Blood pressure stabilized, increased hydration.",
+        },
+        {
+          date: "August 3, 2025",
+          summary: "Improved sleep pattern, started light exercise.",
+        },
+        {
+          date: "August 20, 2025",
+          summary: "Reduced stress levels, consistent meal tracking.",
+        },
+      ];
+
+      function renderReports(reports) {
+        const container = document.getElementById("reportsSection");
+        container.innerHTML = "";
+        reports.forEach((report) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `<h3 class="text-lg font-semibold text-gray-800">${report.date}</h3><p class="text-gray-700 mt-1">${report.summary}</p>`;
+          container.appendChild(card);
         });
+      }
 
-        // Add Entry Button
-        document.getElementById("addEntryBtn").addEventListener("click", () => {
-          const date = document.getElementById("entryDate").value;
-          const score = parseInt(
-            document.getElementById("entryScore").value,
-            10
-          );
-          if (!date || isNaN(score)) {
-            alert("Please select a date and enter a valid score.");
-            return;
-          }
+      function toggleReports() {
+        const section = document.getElementById("reportsSection");
+        const button = section.previousElementSibling;
+        if (section.classList.contains("hidden")) {
+          section.classList.remove("hidden");
+          button.textContent = "Hide Reports";
+        } else {
+          section.classList.add("hidden");
+          button.textContent = "Show Reports";
+        }
+      }
 
-          stored.push({ date, score });
-          saveProgressData(stored);
-          progressChart.data.labels.push(date);
-          progressChart.data.datasets[0].data.push(score);
-          progressChart.update();
-
-          document.getElementById("entryDate").value = "";
-          document.getElementById("entryScore").value = "";
-
-          // Hide welcome message once user adds data
-          if (isNewUser) {
-            localStorage.setItem("isNewUser", "false");
-            welcomeMessage.classList.add("hidden");
-            chartSection.classList.remove("hidden");
-          }
-        });
-
-        // Reset Button
-        document
-          .getElementById("resetChartBtn")
-          .addEventListener("click", () => {
-            if (!confirm("Are you sure you want to clear all progress data?"))
-              return;
-            resetProgressData();
-            progressChart.data.labels = [];
-            progressChart.data.datasets[0].data = [];
-            progressChart.update();
-          });
+      document.addEventListener("DOMContentLoaded", () => {
+        renderReports(fakeReports);
       });
     </script>
   </body>
