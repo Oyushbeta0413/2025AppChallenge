@@ -117,7 +117,7 @@ async def analyze(
             "treatment_suggestions": f"Consult a specialist: {specialist}",
             "home_care_guidance": home_care,
             "info_link": link
-                    
+                      
     })
     
     
