@@ -23,11 +23,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8002"
-        "http://localhost:9000"
-        "http://localhost:5501"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,6 +31,7 @@ app.add_middleware(
 
 
 def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
+    print("***Start of Code***")
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     images = []
     for page in doc:
@@ -45,12 +42,11 @@ def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
     return images
 
 def clean_ocr_text(text: str) -> str:
-    text = text.replace("\x0c", " ")       # remove form feed
-    text = text.replace("\u00a0", " ")     # replace NBSP with space
-    text = re.sub(r'(\d)\s*\.\s*(\d)', r'\1.\2', text)  # fix split decimals
-    text = re.sub(r'\s+', ' ', text)       # collapse multiple spaces/newlines
+    text = text.replace("\x0c", " ")
+    text = text.replace("\u00a0", " ")    
+    text = re.sub(r'(\d)\s*\.\s*(\d)', r'\1.\2', text) 
+    text = re.sub(r'\s+', ' ', text)      
     return text.strip()
-
 
 
 def ocr_text_from_image(image_bytes: bytes) -> str:
@@ -81,26 +77,30 @@ async def analyze(
         ocr_text = ocr_text_from_image(img_bytes)
         ocr_full += ocr_text + "\n\n"
         ocr_full = clean_ocr_text(ocr_full)
-        if len(ocr_full) >= 2000:
-            return {"message": f"The length of the uploaded medical report is too long. Our limit is 2000 characters and your report is {len(ocr_full)} long. This may cause inaccuracies in our readings. Please shorten the report"}
-        
+        print(f"CALLING OCR FULL: {ocr_full}")
+    
         if model.lower() == "gemini":
             return {"message": "Gemini model not available; please use BERT model."}
 
     found_diseases = extract_non_negated_keywords(ocr_full)
+    print(f"CALLING FOUND DISEASES: {found_diseases}")
     past = detect_past_diseases(ocr_full)
+    print(f"CALLING PAST DISEASES: {past}")
 
     for disease in found_diseases:
         if disease in past:    
-            severity, _ = classify_disease_and_severity(ocr_full)
-            detected_diseases.add(((f"{disease}(Detected as a past condition)"), severity))
+            severity = classify_disease_and_severity(disease)
+            detected_diseases.add(((f"{disease}(detected as historical condition, but still under risk.)"), severity))
+            print(f"DETECTED DISEASES(PAST): {detected_diseases}")
         else:
-            severity, _ = classify_disease_and_severity(ocr_full)
+            severity = classify_disease_and_severity(disease)
             detected_diseases.add((disease, severity))
-        
+            print(f"DETECTED DISEASES: {detected_diseases}")
         
     print("OCR TEXT:", ocr_text)
     print("Detected diseases:", found_diseases)
+    ranges = analyze_measurements(ocr_full, df)
+
 
     resolution = []
     detected_ranges = []
@@ -117,18 +117,22 @@ async def analyze(
             "treatment_suggestions": f"Consult a specialist: {specialist}",
             "home_care_guidance": home_care,
             "info_link": link
+                    
     })
+    
+    
     
     print(ocr_full)
     ranges = analyze_measurements(ocr_full, df)
     print(analyze_measurements(ocr_full, df))
     # print ("Ranges is being printed", ranges)
     historical_med_data = detect_past_diseases(ocr_full)
-
+    print("***End of Code***")
+    
     return {
         "ocr_text": ocr_full.strip(),
-        "Detected Anomolies": resolution,
-        "Detected Measurement Values": ranges,
+        "Detected_Anomolies": resolution,
+        "Detected_Measurement_Values": ranges,
     }
 
 class TextRequest(BaseModel):
