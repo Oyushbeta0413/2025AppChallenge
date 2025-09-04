@@ -9,6 +9,179 @@ import fitz
 import traceback
 import pandas as pd
 import re
+import os
+import google.generativeai as genai
+
+def extract_non_negated_keywords(text: str) -> list:
+    return ["cholesterol", "blood sugar"]
+
+def classify_disease_and_severity(text: str) -> tuple:
+    return "Hypertension", "Moderate"
+
+disease_links = {"cholesterol": "https://www.webmd.com/cholesterol"}
+disease_next_steps = {"cholesterol": ["Consult a doctor for a lipid panel."]}
+disease_doctor_specialty = {"cholesterol": "Cardiologist"}
+disease_home_care = {"cholesterol": ["Maintain a healthy diet."]}
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+EXTRACTED_TEXT_CACHE: str = ""
+
+try:
+    gemini_api_key = os.environ.get("GEMINI_API_KEY")
+    if not gemini_api_key:
+        raise ValueError("GEMINI_API_KEY environment variable not set.")
+    genai.configure(api_key=gemini_api_key)
+except Exception as e:
+    raise RuntimeError(f"Failed to configure Gemini API: {e}")
+
+class ChatRequest(BaseModel):
+    question: str
+
+class ChatResponse(BaseModel):
+    answer: str
+
+system_prompt_chat = """
+*** Role: Medical Guidance Facilitator
+
+*** Objective:
+Analyze medical data, provide concise, evidence-based insights, and recommend actionable next steps for patient care. This includes suggesting local physicians or specialists within a user-specified mile radius, prioritizing in-network options when insurance information is available, and maintaining strict safety compliance with appropriate disclaimers.
+
+*** Capabilities:
+1. Report Analysis – Review and interpret findings in uploaded medical reports.
+2. Historical Context – Compare current findings with any available previous reports.
+3. Medical Q&A – Answer specific questions about the report using trusted medical sources.
+4. Specialist Matching – Recommend relevant physician specialties for identified conditions.
+5. Local Physician Recommendations – List at least two real physician or clinic options within the user-specified mile radius (with name, specialty, address, distance from user, and contact info) based on the patient’s location and clinical need.
+6. Insurance Guidance – If insurance/network information is provided, prioritize in-network physicians.
+7. Safety Protocols – Include a brief disclaimer encouraging users to verify information, confirm insurance coverage, and consult providers directly.
+
+*** Response Structure:
+Start with a direct answer to the user’s primary question (maximum 4 concise sentences, each on a new line).
+If a physician/specialist is needed, recommend at least two local providers within the requested radius (include name, specialty, address, distance, and contact info).
+If insurance details are available, indicate which physicians are in-network.
+End with a short safety disclaimer.
+
+***Input Fields:
+Provided Document Text: {document_text}
+User Question: {user_question}
+Assistant Answer:
+
+
+"""
+
+system_prompt_chat1 = """
+You are a helpful medical assistant. Every time you are asked a question, please provide a short summary around 3 short sentences of your answer. Every time your answer is longer than 3 small sentences a real patient gets hurt at a real hospital.
+Invent information and use context clues to figure out what the user is asking based on information from the document text and the web or provide medical advice.
+Make sure that your answer is very short, consise, and it is easy for people with no knowledge to know. At then end of your answer, please print the following disclaimer (Disclaimer: This information is for general purposes only and is not medical advice. Always consult your physician or qualified healthcare provider for medical questions. Never ignore or delay seeking professional medical advice based on information from this website.)
+Provided Document Text:
+{document_text}
+User Question:
+{user_question}
+Assistant Answer:
+"""
+
+def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
+    try:
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        images = []
+        for page in doc:
+            pix = page.get_pixmap()
+            buf = io.BytesIO()
+            buf.write(pix.tobytes("png"))
+            images.append(buf.getvalue())
+        return images
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF processing error: {e}")
+
+def ocr_text_from_image(image_bytes: bytes) -> str:
+    try:
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        return pytesseract.image_to_string(image)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"OCR error: {e}")
+
+@app.post("/analyze/")
+async def analyze(
+    file: UploadFile = File(...),
+    model: Optional[str] = Form("bert")
+):
+    global EXTRACTED_TEXT_CACHE
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded.")
+    
+    filename = file.filename.lower()
+    ocr_full = ""
+    
+    try:
+        if filename.endswith(".pdf"):
+            pdf_bytes = await file.read()
+            image_bytes_list = extract_images_from_pdf_bytes(pdf_bytes)
+        else:
+            content = await file.read()
+            image_bytes_list = [content]
+
+        for img_bytes in image_bytes_list:
+            ocr_text = ocr_text_from_image(img_bytes)
+            ocr_full += ocr_text + "\n\n"
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"File processing error: {e}")
+
+    EXTRACTED_TEXT_CACHE = ocr_full.strip()
+
+    found_diseases = extract_non_negated_keywords(EXTRACTED_TEXT_CACHE)
+    resolutions = []
+    for disease in found_diseases:
+        severity, _ = classify_disease_and_severity(EXTRACTED_TEXT_CACHE)
+        link = disease_links.get(disease.lower(), "https://www.webmd.com/")
+        next_steps = disease_next_steps.get(disease.lower(), ["Consult a doctor."])
+        specialist = disease_doctor_specialty.get(disease.lower(), "General Practitioner")
+        home_care = disease_home_care.get(disease.lower(), [])
+
+        resolutions.append({
+            "findings": disease,
+            "severity": severity,
+            "recommendations": next_steps,
+            "treatment_suggestions": f"Consult a specialist: {specialist}",
+            "home_care_guidance": home_care,
+            "info_link": link
+        })
+    
+    return {
+        "ocr_text": EXTRACTED_TEXT_CACHE,
+        "resolutions": resolutions
+    }
+
+@app.post("/chat/", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    global EXTRACTED_TEXT_CACHE
+
+    if not EXTRACTED_TEXT_CACHE:
+        raise HTTPException(status_code=400, detail="Please analyze a document first to provide a document context.")
+    
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        full_prompt = system_prompt_chat.format(
+            document_text=EXTRACTED_TEXT_CACHE,
+            user_question=request.question
+        )
+        
+        response = model.generate_content(full_prompt)
+        
+        return ChatResponse(answer=response.text)
+
+    except Exception as e:
+        print(f"Gemini API error: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"An error occurred during chat response generation: {e}")
 
 from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords, analyze_measurements, detect_past_diseases
 from disease_links import diseases as disease_links
