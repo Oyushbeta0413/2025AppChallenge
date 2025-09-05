@@ -19,7 +19,7 @@ from synonyms import synonyms
 hba1c = ["hbaic", "hdate", ""]
 
 import google.generativeai as genai
-genai.configure(api_key="AIzaSyAEzAp4WBGP_RvujxUx4e_icXxhfCIRvxs")
+genai.configure(api_key="")
 model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
 non_negated_diseases = []
