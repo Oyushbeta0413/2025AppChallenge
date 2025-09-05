@@ -19,7 +19,7 @@ from synonyms import synonyms
 hba1c = ["hbaic", "hdate", ""]
 
 import google.generativeai as genai
-genai.configure(api_key=)
+genai.configure(api_key="AIzaSyAEzAp4WBGP_RvujxUx4e_icXxhfCIRvxs")
 model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
 non_negated_diseases = []
@@ -59,7 +59,7 @@ def extract_number(text):
 def analyze_measurements(text, df):
     results = []
     final_numbers = []
-    graphs_values = []
+    final_version = ()
     for measurement in df["measurement"].unique():
         pattern = rf"{measurement}[^0-9]*([\d\.]+)"
         matches = re.findall(pattern, text, re.IGNORECASE)
@@ -82,8 +82,10 @@ def analyze_measurements(text, df):
     print (results)
 
     for res in results:
-        final_numbers.append(f"Condition In Concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
-            f"(Range: {res['Range']})")                
+        final = [res['Condition'], res['Measurement'], res['severity'], res['Value'], res['Range']]
+        # final_numbers.append(f"Condition In Concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
+        #     f"(Range: {res['Range']})")
+        final_numbers.append(final)
     print("analyze measurements res:", final_numbers)
     return final_numbers
 
@@ -154,7 +156,6 @@ def extract_non_negated_keywords(text, threshold=80):
         for disease_term in diseases:
             disease_term_lower = disease_term.lower()
             match_score = fuzz.partial_ratio(disease_term_lower, sent_text)
-            print(f"Trying to match '{disease_term_lower}' in sentence: '{sent_text.strip()}' — Match score: {match_score}")
 
             if match_score >= threshold:
                 start = sent_text.find(disease_term_lower)
@@ -435,7 +436,7 @@ if __name__ == '__main__':
     4. The patient reported no chest pain or signs of heart disease.
     5. Overall, there is no evidence of tumor recurrence at this time."""
     print(detect_past_diseases(sample_text, threshold=90))
-    print(analyze_measurements(sample_text, df))
     print(extract_non_negated_keywords(sample_text, threshold=80))
+    print(analyze_measurements(sample_text, df))
 
     
