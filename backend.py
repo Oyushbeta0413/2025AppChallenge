@@ -120,8 +120,31 @@ async def analyze(
                       
     })
     
-    
-    
+    for i in ranges:
+        condition = i[0]
+        measurement = i[1]
+        severity = i[2]
+        value = i[3]
+        range_value = i[4]   # renamed to avoid overwriting Python's built-in "range"
+                    
+        link_range = disease_links.get(condition.lower(), "https://www.webmd.com/")
+        next_steps_range = disease_next_steps.get(condition.lower(), ['Consult a doctor'])
+        specialist_range = disease_doctor_specialty.get(condition.lower(), "General Practitioner")
+        home_care_range = disease_home_care.get(condition.lower(), [])
+        print(f"HELLO!: {measurement}")
+                    
+        condition_version = condition.upper()    
+        severity_version = severity.upper()
+                
+        resolution.append({
+            "findings": f"{condition_version} -- {measurement}",
+            "severity": f"{value} - {severity_version}",
+            "recommendations": next_steps_range,
+            "treatment_suggestions": f"Consult a specialist: {specialist_range}",
+            "home_care_guidance": home_care_range,
+            "info_link": link_range
+        })
+                            
     print(ocr_full)
     ranges = analyze_measurements(ocr_full, df)
     print(analyze_measurements(ocr_full, df))
@@ -132,7 +155,6 @@ async def analyze(
     return {
         "ocr_text": ocr_full.strip(),
         "Detected_Anomolies": resolution,
-        "Detected_Measurement_Values": ranges,
     }
 
 class TextRequest(BaseModel):
