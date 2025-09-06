@@ -21,9 +21,22 @@
       nav a {
         color: #333;
         transition: color 0.3s ease;
+        position: relative; /* needed for the underline fix */
       }
+
       nav a:hover {
         color: var(--tropical-indigo);
+      }
+
+      .nav-link.active-page::after,
+      #mobile-menu a.active-page::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        bottom: -2px; /* small gap below text */
+        left: 0;
+        background-color: var(--tropical-indigo);
       }
 
       .rec-card {
@@ -35,6 +48,7 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
       }
+
       .rec-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
@@ -53,14 +67,17 @@
         padding: 0.25rem 0.75rem;
         border-radius: 9999px;
       }
+
       .badge-high {
         background-color: #fee2e2;
         color: #b91c1c;
       }
+
       .badge-medium {
         background-color: #fef3c7;
         color: #92400e;
       }
+
       .badge-low {
         background-color: #d1fae5;
         color: #065f46;
@@ -77,6 +94,7 @@
         color: var(--tropical-indigo);
         text-decoration: underline;
       }
+
       .rec-link:hover {
         color: #4b7bbd;
       }
@@ -86,6 +104,7 @@
         color: white;
         transition: background-color 0.3s ease;
       }
+
       .btn-primary:hover {
         background-color: #5ba5dd;
       }
@@ -95,6 +114,7 @@
         border: 1px solid var(--wisteria);
         background-color: #fafbfc;
       }
+
       input:focus,
       textarea:focus {
         outline: none;
@@ -114,28 +134,51 @@
     </style>
   </head>
   <body class="bg-[var(--latte-cream)] font-sans text-gray-800 min-h-screen">
-    <!-- Navbar -->
+    <!-- NAVBAR -->
     <nav
-      class="backdrop-blur-md bg-white/30 border-b border-white/30 shadow-md px-6 py-4 mb-8"
+      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
     >
-      <div class="container mx-auto flex justify-between items-center">
+      <div class="flex justify-between items-center w-full px-6 py-4">
+        <!-- Logo -->
         <a
           href="index.html"
-          class="text-2xl font-bold text-[var(--tropical-indigo)]"
-          >CTRL + ALT + HEAL</a
+          class="text-2xl font-bold text-black hover:text-[var(--tropical-indigo)] transition"
         >
-        <ul class="flex space-x-6 text-sm font-medium">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="analyzer.html">Analyzer</a></li>
-          <li><a href="past_data.html">Past Reports</a></li>
-          <li><a href="profile.html">Profile</a></li>
-          <li id="authNavItem"><a href="login.html">Login</a></li>
+          CTRL + ALT + HEAL
+        </a>
+        <!-- Commit Messege 112-->
+
+        <!-- Desktop Menu -->
+        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="profile.html" class="nav-link">Profile</a></li>
+          <li><a href="analyzer.html" class="nav-link">Analyzer</a></li>
+          <li><a href="past_data.html" class="nav-link">Past Report</a></li>
+          <li><a href="index.html" class="nav-link">Logout</a></li>
         </ul>
+
+        <!-- Hamburger Menu -->
+        <button id="hamburger" class="md:hidden text-black text-2xl">☰</button>
       </div>
+
+      <!-- Mobile Menu -->
+      <ul
+        id="mobile-menu"
+        class="hidden flex-col space-y-4 bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg mt-2 p-4 mx-6 md:hidden"
+      >
+        <li><a href="index.html" class="block text-gray-800">Home</a></li>
+        <li>
+          <a href="analyzer.html" class="block text-gray-800">Analyzer</a>
+        </li>
+        <li><a href="profile.html" class="block text-gray-800">Profile</a></li>
+        <li><a href="login.html" class="block text-gray-800">Login</a></li>
+        <li><a href="about.html" class="block text-gray-800">About</a></li>
+      </ul>
     </nav>
-    <!-- CHANGE MARKER TO USE THIS  -->
-    <!-- secound change marker-->
-    <main class="max-w-5xl mx-auto px-4 mb-16">
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-5xl mx-auto px-4 mb-16 pt-28">
+      <!-- Your original content blocks remain the same -->
       <!-- Upload Section -->
       <div
         class="bg-[var(--latte-cream)] border border-[var(--wisteria)] rounded-lg p-6 mb-8"
@@ -189,6 +232,19 @@
         </div>
       </div>
 
+      <!-- Measurements -->
+      <div
+        class="bg-[var(--latte-cream)] border border-[var(--wisteria)] rounded-lg p-6 mb-8"
+      >
+        <h3 class="text-lg font-semibold mb-3">Detected Measurement Values</h3>
+        <div
+          id="detected-measurement-results"
+          class="bg-[#F9FAFB] text-sm border border-[var(--wisteria)] rounded p-4 space-y-4"
+        >
+          Your measurement values will appear here.
+        </div>
+      </div>
+
       <!-- Chatbot -->
       <div
         class="bg-[var(--latte-cream)] border border-[var(--wisteria)] rounded-lg p-6 mb-8"
@@ -214,241 +270,29 @@
       </div>
     </main>
 
-    <!-- Firebase -->
-    <script type="module">
-      import { getFirestore, collection, doc, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-      import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    <!-- SCRIPT SECTION -->
+    <script>
+      const hamburger = document.getElementById("hamburger");
+      const mobileMenu = document.getElementById("mobile-menu");
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyAPhM_Ee7cLzyKHs5zyFy8g5ZOk9-pubRI",
-        authDomain: "login-tutorial-7a9e1.firebaseapp.com",
-        projectId: "login-tutorial-7a9e1",
-        storageBucket: "login-tutorial-7a9e1.firebasestorage.app",
-        messagingSenderId: "491093197824",
-        appId: "1:491093197824:web:9f866..."
-      };
+      hamburger.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      window.firebaseAuth = auth;
-      window.onAuthStateChanged = onAuthStateChanged;
-      window.firestoreDb = db;
-      window.firestoreHelpers = { collection, doc, addDoc, serverTimestamp }; 
+      // Underline the active page only
+      const currentPath = window.location.pathname.split("/").pop();
 
-      onAuthStateChanged(auth, (user) => {
-        const authNavItem = document.getElementById('authNavItem');
-        if (authNavItem) {
-          if (user) {
-            authNavItem.innerHTML = '<button onclick="logout()" class="hover:text-[#6B9080] text-red-600">Logout</button>';
-          } else {
-            authNavItem.innerHTML = '<a href="login.html" class="hover:text-[#6B9080]">Login</a>';
-          }
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        if (link.getAttribute("href") === currentPath) {
+          link.classList.add("active-page");
         }
       });
 
-      window.logout = async () => {
-        try {
-          await signOut(auth);
-          localStorage.clear();
-          window.location.href = 'login.html';
-        } catch (error) {
-          console.error("Error signing out:", error);
-        }
-      };
-
-      
-    </script>
-
-
-    <script type="module">
-      import {
-        pipeline,
-        env,
-      } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0";
-
-      const loadingEl = document.getElementById("loading");
-      const textOutput = document.getElementById("text-output");
-      const recsOutput = document.getElementById("recommendations-output");
-      const findingsOutput = document.getElementById(
-        "detected-measurement-results"
-      );
-      const authStatus = document.getElementById("auth-status");
-      let extractedText = "";
-      let currentUser = null;
-
-      document
-        .getElementById("pdf-upload")
-        .addEventListener("change", function () {
-          loadingEl.textContent = this.files.length
-            ? `File selected: ${this.files[0].name}`
-            : "No file uploaded yet.";
-        });
-
-      const saveAnalysis = async (uid, payload) => {
-        try {
-          const docRef = await firebase
-            .firestore()
-            .collection("users")
-            .doc(uid)
-            .collection("analyses")
-            .add({
-              ...payload,
-              createdAt: serverTimestamp(),
-            });
-          return docRef.id;
-        } catch (e) {
-          console.error("Failed to save analysis:", e);
-        }
-      };
-
-      const renderRecCard = (rec, idx) => {
-        const sev = (rec.severity || "").toLowerCase();
-        const sevClass = sev.includes("severe")
-          ? "badge-high"
-          : sev.includes("moderate")
-          ? "badge-medium"
-          : "badge-low";
-        return `
-        <div class="rec-card">
-          <div class="flex items-center justify-between">
-            <h4 class="rec-title">Finding ${idx + 1}: ${
-          rec.findings || "N/A"
-        }</h4>
-            <span class="rec-badge ${sevClass}">${rec.severity || "—"}</span>
-          </div>
-          <ul class="rec-content space-y-1">
-            <li><em>Recommendations:</em>
-              <ul class="list-disc list-inside ml-6">
-                ${(rec.recommendations || [])
-                  .map((r) => `<li>${r}</li>`)
-                  .join("")}
-              </ul>
-            </li>
-            <li><em>Treatment:</em> ${
-              rec.treatment_suggestions || "Not available"
-            }</li>
-            <li><em>Home Care:</em>
-              <ul class="list-disc list-inside ml-6">
-                ${(rec.home_care_guidance || [])
-                  .map((r) => `<li>${r}</li>`)
-                  .join("")}
-              </ul>
-            </li>
-            ${
-              rec.info_link
-                ? `<li><a href="${rec.info_link}" target="_blank" class="rec-link">Learn more</a></li>`
-                : ""
-            }
-          </ul>
-        </div>
-      `;
-      };
-
-      window.onAuthStateChanged(window.firebaseAuth, (user) => {
-        currentUser = user;
-        if (user) {
-          authStatus.textContent = `Signed in as ${user.email || user.uid}`;
-        } else {
-          authStatus.textContent =
-            "Not signed in. Sign in to save and view past analyses.";
+      document.querySelectorAll("#mobile-menu a").forEach((link) => {
+        if (link.getAttribute("href") === currentPath) {
+          link.classList.add("active-page");
         }
       });
-
-      document
-        .getElementById("analyze-btn")
-        .addEventListener("click", async () => {
-          const file = document.getElementById("pdf-upload").files[0];
-          const date = document.getElementById("report-date").value;
-          if (!file) {
-            loadingEl.textContent = "Please upload a file first.";
-            return;
-          }
-          if (!date) {
-            loadingEl.textContent = "Please select the report date.";
-            return;
-          }
-
-          loadingEl.textContent = "Processing with AI...";
-          textOutput.textContent = "";
-          recsOutput.textContent = "";
-
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("model", "bert");
-
-          let data;
-          try {
-            const res = await fetch("http://localhost:9000/analyze/", {
-              method: "POST",
-              body: formData,
-            });
-            if (!res.ok) throw new Error(await res.text());
-            data = await res.json();
-          } catch (err) {
-            console.error(err);
-            loadingEl.textContent = "Error during analysis: " + err.message;
-            return;
-          }
-
-          extractedText = data.ocr_text || "";
-          textOutput.textContent = extractedText;
-
-          const recs = Array.isArray(data.Detected_Anomolies)
-            ? data.Detected_Anomolies
-            : data.Detected_Anomolies
-            ? [data.Detected_Anomolies]
-            : [];
-          if (data.Detected_Anomolies) {
-            recsOutput.innerHTML = recs
-              .map((rec, i) => renderRecCard(rec, i))
-              .join("");
-          } else {
-            recsOutput.textContent = "No recommendations found.";
-          }
-
-          const findings = Array.isArray(data.Detected_Measurement_Values)
-            ? data.Detected_Measurement_Values
-            : data.Detected_Measurement_Values
-            ? [data.Detected_Measurement_Values]
-            : [];
-          if (data.Detected_Measurement_Values) {
-            findingsOutput.innerHTML = findings
-              .map((finding, i) => renderRecCard(finding, i))
-              .join("");
-          } else {
-            findingsOutput.textContent = "No measurements found.";
-          }
-
-          if (currentUser) {
-            await saveAnalysis(currentUser.uid, {
-              reportDate: date,
-              ocr_text: extractedText,
-              resolutions: recs,
-              measurements: findings,
-            });
-          }
-
-          loadingEl.textContent = "Analysis complete.";
-        });
-
-      document.getElementById("ask-btn").onclick = async () => {
-        const q = document.getElementById("user-question").value.trim();
-        if (!q) return;
-        const chat = document.getElementById("chat-output");
-        chat.innerHTML += `<p><strong>You:</strong> ${q}</p>`;
-        chat.scrollTop = chat.scrollHeight;
-        env.allowLocalModels = false;
-        const qa = await pipeline(
-          "question-answering",
-          "Xenova/distilbert-base-uncased-distilled-squad"
-        );
-        const out = await qa(q, extractedText);
-        chat.innerHTML += `<p><strong>Chatbot:</strong> ${out.answer}</p>`;
-        document.getElementById("user-question").value = "";
-        chat.scrollTop = chat.scrollHeight;
-      };
     </script>
   </body>
 </html>

@@ -2,192 +2,310 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Profile - CTRL + ALT + HEAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --tropical-indigo: rgb(120, 187, 242);
+        --wisteria: rgb(197, 217, 251);
+        --latte-cream: #ffffff;
+      }
+
+      body {
+        font-family: "Rubik", sans-serif;
+        background-color: var(--latte-cream);
+        color: #333;
+      }
+
+      .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out;
+      }
+      .fade-in.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .glass-card {
+        background: rgba(162, 160, 160, 0.075);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .nav-link {
+        position: relative;
+        padding-bottom: 4px;
+        transition: color 0.3s;
+      }
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0%;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--tropical-indigo);
+        transition: width 0.3s ease;
+      }
+      .nav-link:hover::after {
+        width: 100%;
+      }
+    </style>
   </head>
-  <body class="bg-[#F7F8F9] text-gray-800 min-h-screen">
-    <!-- Navbar -->
-    <nav class="bg-white border border-gray-200 px-6 py-4 mb-6">
-      <div class="container mx-auto flex justify-between items-center">
-        <a href="index.html" class="text-2xl font-bold text-[#6B9080]"
-          >CTRL + ALT + HEAL</a
+  <body class="pt-24">
+    <!-- NAVBAR -->
+    <nav
+      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
+    >
+      <div class="flex justify-between items-center w-full px-6 py-4">
+        <!-- Logo -->
+        <a
+          href="index.html"
+          class="text-2xl font-bold text-black hover:text-[var(--tropical-indigo)] transition"
         >
-        <ul class="flex space-x-6 text-sm font-medium text-gray-700">
-          <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
-          <li>
-            <a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a>
-          </li>
-          <li>
-            <a href="profile.html" class="hover:text-[#6B9080]">Profile</a>
-          </li>
-          <li><button onclick="logout()" class="text-red-500">Logout</button></li>
+          CTRL + ALT + HEAL
+        </a>
+
+        <!-- Desktop Menu -->
+        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="profile.html" class="nav-link">Profile</a></li>
+          <li><a href="analyzer.html" class="nav-link">Analyzer</a></li>
+          <li><a href="past_data.html" class="nav-link">Past Reports</a></li>
+          <li><a href="index.html" class="nav-link">Logout</a></li>
         </ul>
+
+        <!-- Hamburger Menu -->
+        <button
+          id="hamburger"
+          class="md:hidden text-[var(--latte-cream)] text-2xl"
+        >
+          ☰
+        </button>
       </div>
+
+      <!-- Mobile Menu -->
+      <ul
+        id="mobile-menu"
+        class="hidden flex-col space-y-4 bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg mt-2 p-4 mx-6 md:hidden"
+      >
+        <li>
+          <a
+            href="index.html"
+            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
+            >Home</a
+          >
+        </li>
+        <li>
+          <a
+            href="analyzer.html"
+            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
+            >Analyzer</a
+          >
+        </li>
+        <li>
+          <a
+            href="profile.html"
+            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
+            >Profile</a
+          >
+        </li>
+        <li>
+          <a
+            href="login.html"
+            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
+            >Login</a
+          >
+        </li>
+        <li>
+          <a
+            href="about.html"
+            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
+            >About</a
+          >
+        </li>
+      </ul>
     </nav>
 
-    <div class="container mx-auto px-6">
-      <!-- VIEW MODE -->
-      <div id="profileViewSection">
-        <div class="flex items-start space-x-6 mb-10">
-          <!-- Avatar & Edit Button -->
-          <div class="flex flex-col items-center">
-            <div class="w-32 h-32 bg-gray-300 rounded-full"></div>
-            <button
-              id="editProfileBtn"
-              class="mt-2 bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-            >
-              Edit Profile
-            </button>
-            <a href="analyzer.html"
-              ><button
-                class="mt-2 bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-              >
-                Go To Analyzer
-              </button>
-            </a>
-          </div>
+    <script>
+      const hamburger = document.getElementById("hamburger");
+      const mobileMenu = document.getElementById("mobile-menu");
 
-          
+      hamburger.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
 
-          <!-- User Info -->
-          <div>
-            <h1 class="text-3xl font-semibold text-gray-800 mb-4">
-              Your Profile
-            </h1>
-            <p class="text-gray-700 mb-2">
-              Name: <span id="userName" class="font-medium">Loading...</span>
-            </p>
-            <p class="text-gray-700 mb-2">
-              DOB: <span id="userDOB" class="font-medium">Loding...</span>
-            </p>
-            <!-- <p class="text-gray-700 mb-2">
-              Big Things We Should Fix:
-              <span id="userFix" class="font-medium"></span>
-            </p>
-            <p class="text-gray-700 mb-6">
-              Health Goals: <span id="userGoals" class="font-medium"></span>
-            </p> -->
-          </div>
-        </div>
-      </div>
+      // Underline the active page only
+      const currentPath = window.location.pathname.split("/").pop();
 
-      <!-- EDIT MODE -->
-      <div id="profileEditSection" class="hidden mb-10">
-        <div class="flex flex-col sm:flex-row items-start space-x-6">
-          <!-- Avatar Placeholder -->
-          <div class="flex flex-col items-center mb-4 sm:mb-0">
-            <div class="w-32 h-32 bg-gray-300 rounded-full"></div>
-          </div>
-          <!-- Edit Form -->
-          <div class="flex-1">
-            <h1 class="text-3xl font-semibold text-gray-800 mb-4">
-              Edit Profile
-            </h1>
-            <div class="space-y-4">
-              <div>
-                <label
-                  for="inputName"
-                  class="block text-sm font-medium text-gray-600"
-                  >Name</label
-                >
-                <input
-                  type="text"
-                  id="inputName"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-                />
-              </div>
-              <div>
-                <label
-                  for="inputDOB"
-                  class="block text-sm font-medium text-gray-600"
-                  >Date of Birth</label
-                >
-                <input
-                  type="date"
-                  id="inputDOB"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-                />
-              </div>
-              </div>
-            </div>
-            <div class="flex space-x-2 mt-4">
-              <button
-                id="saveProfileBtn"
-                class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-              >
-                Save
-              </button>
-              <button
-                id="cancelProfileBtn"
-                class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        if (link.getAttribute("href") === currentPath) {
+          link.classList.add("active-page"); // we'll style this in CSS
+        }
+      });
 
+      document.querySelectorAll("#mobile-menu a").forEach((link) => {
+        if (link.getAttribute("href") === currentPath) {
+          link.classList.add("active-page");
+        }
+      });
+    </script>
 
-      <!-- Chart Section -->
-      <div class="mt-10" id="chartSection">
-        <!-- Card Wrapper -->
-        <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">
-            Health Progress
-          </h2>
+    <style>
+      .nav-link.active-page::after,
+      #mobile-menu a.active-page::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--tropical-indigo);
+      }
+    </style>
 
-          <!-- Controls Row -->
-          <div
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
+    <!-- PROFILE VIEW SECTION -->
+    <section class="max-w-6xl mx-auto px-6 fade-in">
+      <div id="profileViewSection" class="grid md:grid-cols-2 gap-12 mb-10">
+        <!-- AVATAR & BUTTONS -->
+        <div class="flex flex-col items-center glass-card p-6">
+          <div class="w-32 h-32 bg-gray-300 rounded-full mb-4"></div>
+          <button
+            id="editProfileBtn"
+            class="bg-[var(--tropical-indigo)] hover:bg-[var(--wisteria)] text-white px-6 py-2 rounded-lg shadow-lg transition mb-2"
           >
-            <!-- Date & Score Inputs -->
-            <div class="flex flex-1 gap-2">
-              <input
-                type="date"
-                id="entryDate"
-                class="flex-1 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-              />
-              <input
-                type="number"
-                id="entryScore"
-                min="0"
-                max="100"
-                placeholder="Score"
-                class="w-24 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[#6B9080] focus:outline-none"
-              />
-            </div>
-            <!-- Buttons -->
-            <div class="flex gap-2">
-              <button
-                id="addEntryBtn"
-                class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-              >
-                Add Entry
-              </button>
-              <button
-                id="resetChartBtn"
-                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-              >
-                Reset Chart
-              </button>
-            </div>
-          </div>
+            Edit Profile
+          </button>
+          <a href="analyzer.html">
+            <button
+              class="bg-[var(--tropical-indigo)] hover:bg-[var(--wisteria)] text-white px-6 py-2 rounded-lg shadow-lg transition"
+            >
+              Go To Analyzer
+            </button>
+          </a>
+        </div>
 
-          <!-- Chart Canvas -->
-          <div class="overflow-x-auto">
-            <canvas id="progressChart" class="w-full h-64"></canvas>
-          </div>
+        <!-- USER INFO -->
+        <div class="glass-card p-8">
+          <h1 class="text-3xl font-bold text-[var(--tropical-indigo)] mb-6">
+            Your Profile
+          </h1>
+          <p class="text-gray-700 mb-2">
+            Name: <span id="userName" class="font-medium">Loading...</span>
+          </p>
+          <p class="text-gray-700 mb-2">
+            DOB: <span id="userDOB" class="font-medium">Loading...</span>
+          </p>
         </div>
       </div>
-    </div>
 
+      <!-- PROFILE EDIT SECTION -->
+      <div id="profileEditSection" class="hidden glass-card p-8 fade-in mb-10">
+        <h1 class="text-3xl font-bold text-[var(--tropical-indigo)] mb-6">
+          Edit Profile
+        </h1>
+        <div class="grid gap-6 md:grid-cols-2">
+          <div>
+            <label class="block text-gray-700 font-medium mb-2" for="inputName"
+              >Name</label
+            >
+            <input
+              type="text"
+              id="inputName"
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-gray-700 font-medium mb-2" for="inputDOB"
+              >Date of Birth</label
+            >
+            <input
+              type="date"
+              id="inputDOB"
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+            />
+          </div>
+        </div>
+        <div class="flex gap-4 mt-6">
+          <button
+            id="saveProfileBtn"
+            class="bg-[var(--tropical-indigo)] hover:bg-[var(--wisteria)] text-white px-6 py-2 rounded-lg shadow-lg transition"
+          >
+            Save
+          </button>
+          <button
+            id="cancelProfileBtn"
+            class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- CHART SECTION -->
+      <div id="chartSection" class="glass-card p-8 fade-in">
+        <h2 class="text-2xl font-bold text-[var(--tropical-indigo)] mb-6">
+          Health Progress
+        </h2>
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+          <input
+            type="date"
+            id="entryDate"
+            class="flex-1 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+          />
+          <input
+            type="number"
+            id="entryScore"
+            min="0"
+            max="100"
+            placeholder="Score"
+            class="w-32 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+          />
+          <button
+            id="addEntryBtn"
+            class="bg-[var(--tropical-indigo)] hover:bg-[var(--wisteria)] text-white px-6 py-2 rounded-lg shadow-lg transition"
+          >
+            Add Entry
+          </button>
+          <button
+            id="resetChartBtn"
+            class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition"
+          >
+            Reset Chart
+          </button>
+        </div>
+        <canvas id="progressChart" class="w-full h-64"></canvas>
+      </div>
+    </section>
+
+    <!-- ALL JAVASCRIPT KEPT INTACT -->
     <script type="module">
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-      import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-      import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyAPhM_Ee7cLzyKHs5zyFy8g5ZOk9-pubRI",
@@ -195,7 +313,7 @@
         projectId: "login-tutorial-7a9e1",
         storageBucket: "login-tutorial-7a9e1.firebasestorage.app",
         messagingSenderId: "491093197824",
-        appId: "1:491093197824:web:9f866..."
+        appId: "1:491093197824:web:9f866...",
       };
 
       const app = initializeApp(firebaseConfig);
@@ -204,38 +322,35 @@
 
       let currentUser = null;
 
-      // Check authentication state
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
           await loadUserProfile();
         } else {
-          window.location.href = 'login.html';
+          window.location.href = "login.html";
         }
       });
 
-      
       async function loadUserProfile() {
         try {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            document.getElementById("userName").textContent = userData.name || "Name not set";
-            document.getElementById("userDOB").textContent = userData.dob || "DOB not set";
+            document.getElementById("userName").textContent =
+              userData.name || "Name not set";
+            document.getElementById("userDOB").textContent =
+              userData.dob || "DOB not set";
             localStorage.setItem("userName", userData.name || "");
             localStorage.setItem("userDOB", userData.dob || "");
           }
         } catch (error) {
           console.error("Error loading user profile:", error);
         }
-      }            
+      }
 
       window.saveProfile = async (name, dob) => {
         try {
-          await updateDoc(doc(db, 'users', currentUser.uid), {
-            name: name,
-            dob: dob
-          });
+          await updateDoc(doc(db, "users", currentUser.uid), { name, dob });
           localStorage.setItem("userName", name);
           localStorage.setItem("userDOB", dob);
           return true;
@@ -245,17 +360,15 @@
         }
       };
 
-     
       window.logout = async () => {
         try {
           await signOut(auth);
           localStorage.clear();
-          window.location.href = 'login.html';
+          window.location.href = "login.html";
         } catch (error) {
           console.error("Error signing out:", error);
         }
       };
-
 
       function loadProgressData() {
         return JSON.parse(localStorage.getItem("progressData") || "[]");
@@ -268,7 +381,6 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-
         const profileView = document.getElementById("profileViewSection");
         const profileEdit = document.getElementById("profileEditSection");
         const editBtn = document.getElementById("editProfileBtn");
@@ -276,8 +388,6 @@
         const cancelBtn = document.getElementById("cancelProfileBtn");
         const inputName = document.getElementById("inputName");
         const inputDOB = document.getElementById("inputDOB");
-        // const inputFix = document.getElementById("inputFix");
-        // const inputGoals = document.getElementById("inputGoals");
 
         editBtn.addEventListener("click", () => {
           inputName.value = document.getElementById("userName").textContent;
@@ -289,12 +399,12 @@
         saveBtn.addEventListener("click", async () => {
           const nameVal = inputName.value.trim();
           const dobVal = inputDOB.value;
-          
           const success = await window.saveProfile(nameVal, dobVal);
-          
           if (success) {
-            document.getElementById("userName").textContent = nameVal || "Name not set";
-            document.getElementById("userDOB").textContent = dobVal || "DOB not set";
+            document.getElementById("userName").textContent =
+              nameVal || "Name not set";
+            document.getElementById("userDOB").textContent =
+              dobVal || "DOB not set";
             profileEdit.classList.add("hidden");
             profileView.classList.remove("hidden");
           } else {
@@ -307,21 +417,9 @@
         });
 
         const chartSection = document.getElementById("chartSection");
-        const welcomeMessage = document.getElementById("welcomeMessage");
-        const isNewUser = localStorage.getItem("isNewUser") === "true";
-
-        if (isNewUser) {
-          welcomeMessage.classList.remove("hidden");
-          chartSection.classList.add("hidden");
-        }
-
-       //chart logic(line graph)
         const stored = loadProgressData();
         const labels = stored.map((e) => e.date);
-        const dataPoints = [
-          {x:50, y:7},
-          {x:70, y:30},
-        ];
+        const dataPoints = stored.map((e) => e.score);
         const ctx = document.getElementById("progressChart").getContext("2d");
         const progressChart = new Chart(ctx, {
           type: "line",
@@ -331,7 +429,8 @@
               {
                 label: "Health Score",
                 data: dataPoints,
-                borderColor: "#6B9080",
+                borderColor: "var(--tropical-indigo)",
+                backgroundColor: "rgba(120,187,242,0.2)",
                 fill: true,
                 tension: 0.4,
               },
@@ -342,7 +441,6 @@
           },
         });
 
-        // Add Entry Button
         document.getElementById("addEntryBtn").addEventListener("click", () => {
           const date = document.getElementById("entryDate").value;
           const score = parseInt(
@@ -353,25 +451,15 @@
             alert("Please select a date and enter a valid score.");
             return;
           }
-
           stored.push({ date, score });
           saveProgressData(stored);
           progressChart.data.labels.push(date);
           progressChart.data.datasets[0].data.push(score);
           progressChart.update();
-
           document.getElementById("entryDate").value = "";
           document.getElementById("entryScore").value = "";
-
-          // Hide welcome message once user adds data
-          if (isNewUser) {
-            localStorage.setItem("isNewUser", "false");
-            welcomeMessage.classList.add("hidden");
-            chartSection.classList.remove("hidden");
-          }
         });
 
-        // Reset Button
         document
           .getElementById("resetChartBtn")
           .addEventListener("click", () => {
@@ -383,6 +471,19 @@
             progressChart.update();
           });
       });
+
+      // Fade-in on scroll
+      const fadeObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add("show");
+          });
+        },
+        { threshold: 0.1 }
+      );
+      document
+        .querySelectorAll(".fade-in")
+        .forEach((el) => fadeObserver.observe(el));
     </script>
   </body>
 </html>

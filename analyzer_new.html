@@ -5,7 +5,6 @@
     <title>Document Analyzer | CTRL + ALT + HEAL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <style>
       :root {
         --tropical-indigo: rgb(120, 187, 242);
@@ -19,30 +18,26 @@
         color: #333;
       }
 
-      .btn-primary {
-        background-color: var(--tropical-indigo);
-        color: white;
-        transition: 0.3s;
-      }
-
-      .btn-primary:hover {
-        background-color: var(--wisteria);
+      nav a {
         color: #333;
+        transition: color 0.3s ease;
+      }
+      nav a:hover {
+        color: var(--tropical-indigo);
       }
 
       .rec-card {
-        background-color: var(--wisteria);
-        border: 1px solid #d1d5db;
+        background-color: var(--latte-cream);
+        border: 1px solid var(--wisteria);
         border-radius: 1rem;
         padding: 1.25rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
       }
-
       .rec-card:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-        transform: scale(1.01);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
       }
 
       .rec-title {
@@ -58,165 +53,159 @@
         padding: 0.25rem 0.75rem;
         border-radius: 9999px;
       }
-
       .badge-high {
-        color: rgb(255, 132, 132);
+        background-color: #fee2e2;
+        color: #b91c1c;
       }
-
       .badge-medium {
-        color: rgb(253, 231, 171);
+        background-color: #fef3c7;
+        color: #92400e;
       }
-
       .badge-low {
-        color: rgb(168, 255, 172);
+        background-color: #d1fae5;
+        color: #065f46;
       }
 
       .rec-content {
         list-style-type: disc;
         margin-left: 1.25rem;
         font-size: 0.875rem;
-        color: #333;
+        color: #374151;
       }
 
       .rec-link {
         color: var(--tropical-indigo);
         text-decoration: underline;
-        transition: color 0.2s;
+      }
+      .rec-link:hover {
+        color: #4b7bbd;
       }
 
-      .rec-link:hover {
-        color: #5a99c9;
+      .btn-primary {
+        background-color: var(--tropical-indigo);
+        color: white;
+        transition: background-color 0.3s ease;
+      }
+      .btn-primary:hover {
+        background-color: #5ba5dd;
+      }
+
+      input,
+      textarea {
+        border: 1px solid var(--wisteria);
+        background-color: #fafbfc;
+      }
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--tropical-indigo);
+        box-shadow: 0 0 0 2px rgba(120, 187, 242, 0.3);
+      }
+
+      h2,
+      h3 {
+        color: var(--tropical-indigo);
+      }
+
+      #chat-output {
+        background-color: #f7f9fc;
+        border: 1px solid var(--wisteria);
       }
     </style>
   </head>
-  <body>
+  <body class="bg-[var(--latte-cream)] font-sans text-gray-800 min-h-screen">
     <!-- Navbar -->
-    <nav class="bg-var(--latte-cream) shadow px-6 py-4">
+    <nav
+      class="backdrop-blur-md bg-white/30 border-b border-white/30 shadow-md px-6 py-4 mb-8"
+    >
       <div class="container mx-auto flex justify-between items-center">
         <a
           href="index.html"
-          class="text-2xl font-bold"
-          style="color: var(--tropical-indigo)"
+          class="text-2xl font-bold text-[var(--tropical-indigo)]"
           >CTRL + ALT + HEAL</a
         >
         <ul class="flex space-x-6 text-sm font-medium">
-          <li>
-            <a
-              href="index.html"
-              style="color: #333"
-              class="hover:text-var(--tropical-indigo)"
-              >Home</a
-            >
-          </li>
-          <li>
-            <a
-              href="analyzer.html"
-              style="color: #333"
-              class="hover:text-var(--tropical-indigo)"
-              >Analyzer</a
-            >
-          </li>
-          <li>
-            <a
-              href="profile.html"
-              style="color: #333"
-              class="hover:text-var(--tropical-indigo)"
-              >Profile</a
-            >
-          </li>
-          <li>
-            <a
-              href="login.html"
-              style="color: #333"
-              class="hover:text-var(--tropical-indigo)"
-              >Login</a
-            >
-          </li>
-          <li>
-            <a
-              href="about.html"
-              style="color: #333"
-              class="hover:text-var(--tropical-indigo)"
-              >About Us</a
-            >
-          </li>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="analyzer.html">Analyzer</a></li>
+          <li><a href="past_data.html">Past Reports</a></li>
+          <li><a href="profile.html">Profile</a></li>
+          <li id="authNavItem"><a href="login.html">Login</a></li>
         </ul>
       </div>
     </nav>
-
-    <main class="max-w-5xl mx-auto px-4 mb-16 pt-4">
+    <!-- CHANGE MARKER TO USE THIS  -->
+    <!-- secound change marker-->
+    <main class="max-w-5xl mx-auto px-4 mb-16">
       <!-- Upload Section -->
-      <div class="bg-var(--latte-cream) shadow rounded-lg p-6 mb-8">
-        <h2
-          class="text-xl font-semibold mb-4"
-          style="color: var(--tropical-indigo)"
-        >
+      <div
+        class="bg-[var(--latte-cream)] border border-[var(--wisteria)] rounded-lg p-6 mb-8"
+      >
+        <h2 class="text-xl font-semibold mb-4">
           Upload & Analyze Your Medical PDF or Image
         </h2>
         <input
           type="file"
           id="pdf-upload"
           accept=".pdf, image/*"
-          class="w-full mb-4 border border-gray-300 rounded px-3 py-2"
+          class="w-full mb-4 rounded px-3 py-2"
+        />
+        <input
+          type="date"
+          id="report-date"
+          class="w-full mb-4 rounded px-3 py-2"
         />
         <button id="analyze-btn" class="btn-primary px-4 py-2 rounded">
           Analyze with AI
         </button>
         <p id="loading" class="text-gray-600 mt-2">No file uploaded yet.</p>
+        <p id="auth-status" class="text-sm text-gray-500 mt-1">
+          Sign in to save and view past analyses.
+        </p>
       </div>
 
-      <!-- Summary Box -->
-      <div class="bg-var(--latte-cream) shadow rounded-lg p-6 mb-8">
-        <h3
-          class="text-lg font-semibold mb-3"
-          style="color: var(--tropical-indigo)"
-        >
-          Summarized Text
-        </h3>
+      <!-- Extracted Text -->
+      <div
+        class="bg-[var(--latte-cream)] border border-[var(--wisteria)] rounded-lg p-6 mb-8"
+      >
+        <h3 class="text-lg font-semibold mb-3">Extracted Text</h3>
         <div
-          class="whitespace-pre-wrap h-60 overflow-y-auto bg-var(--latte-cream) text-sm border border-gray-200 rounded p-4"
-          id="summaryBox"
+          id="text-output"
+          class="whitespace-pre-wrap h-60 overflow-auto bg-[#FAFBFC] text-sm border border-[var(--wisteria)] rounded p-4"
         >
-          ...
+          OCR results will appear here.
         </div>
       </div>
 
-      <!-- AI Recommendations -->
-      <div class="bg-var(--latte-cream) shadow rounded-lg p-6 mb-8">
-        <h3
-          class="text-lg font-semibold mb-3"
-          style="color: var(--tropical-indigo)"
+      <!-- AI Findings -->
+      <div
+        class="bg-[var(--latte-cream)] border border-[var(--wisteria)] rounded-lg p-6 mb-8"
+      >
+        <h3 class="text-lg font-semibold mb-3">AI Findings</h3>
+        <div
+          id="recommendations-output"
+          class="bg-[#F9FAFB] text-sm border border-[var(--wisteria)] rounded p-4 space-y-4"
         >
-          AI Recommendations
-        </h3>
-        <div id="recommendations-output" class="space-y-4"></div>
+          Findings and Recommendations will appear here.
+        </div>
       </div>
 
-      <!-- Chatbot Section -->
-      <div class="bg-var(--latte-cream) shadow rounded-lg p-6">
-        <h3
-          class="text-lg font-semibold mb-3"
-          style="color: var(--tropical-indigo)"
-        >
-          Ask Dr. CTRL
-        </h3>
+      <!-- Chatbot -->
+      <div
+        class="bg-[var(--latte-cream)] border border-[var(--wisteria)] rounded-lg p-6 mb-8"
+      >
+        <h3 class="text-lg font-semibold mb-3">Ask Chatbot</h3>
         <div
           id="chat-output"
-          class="space-y-2 h-48 overflow-y-auto border border-gray-200 rounded p-4"
-          style="background-color: var(--wisteria); color: #333"
+          class="space-y-2 h-48 overflow-auto text-sm rounded p-4"
         >
-          <p>
-            <strong>Dr. CTRL:</strong> Hello, I’m Dr. CTRL — your pixel-powered
-            digital doctor. Let’s get you healed up, one byte at a time.
-          </p>
+          <p><strong>Chatbot:</strong> Ask me something about your report</p>
         </div>
         <div class="flex mt-4 gap-2">
           <input
             type="text"
             id="user-question"
-            placeholder="Ask a question about your report"
-            class="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2"
-            style="focus:ring-color: var(--tropical-indigo);"
+            placeholder="Ask a question..."
+            class="flex-1 rounded px-3 py-2 focus:outline-none"
           />
           <button id="ask-btn" class="btn-primary px-4 py-2 rounded">
             Ask
@@ -225,120 +214,250 @@
       </div>
     </main>
 
-    <!-- JS stays exactly the same as your original -->
+    <!-- Firebase -->
     <script type="module">
-      document.addEventListener("DOMContentLoaded", () => {
-        const recsOutput = document.getElementById("recommendations-output");
-        const loadingEl = document.getElementById("loading");
-        const summaryBox = document.getElementById("summaryBox");
-        const analyzeBtn = document.getElementById("analyze-btn");
-        const chatBox = document.getElementById("chat-output");
-        const userQuestionInput = document.getElementById("user-question");
-        const askBtn = document.getElementById("ask-btn");
+      import {
+        getFirestore,
+        collection,
+        doc,
+        addDoc,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-        let extractedText = "";
+      const firebaseConfig = {
+        apiKey: "AIzaSyAPhM_Ee7cLzyKHs5zyFy8g5ZOk9-pubRI",
+        authDomain: "login-tutorial-7a9e1.firebaseapp.com",
+        projectId: "login-tutorial-7a9e1",
+        storageBucket: "login-tutorial-7a9e1.firebasestorage.app",
+        messagingSenderId: "491093197824",
+        appId: "1:491093197824:web:9f866...",
+      };
 
-        analyzeBtn.addEventListener("click", async () => {
-          const fileInput = document.getElementById("pdf-upload");
-          const file = fileInput.files[0];
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      window.firebaseAuth = auth;
+      window.onAuthStateChanged = onAuthStateChanged;
+      window.firestoreDb = db;
+      window.firestoreHelpers = { collection, doc, addDoc, serverTimestamp };
 
+      onAuthStateChanged(auth, (user) => {
+        const authNavItem = document.getElementById("authNavItem");
+        if (authNavItem) {
+          if (user) {
+            authNavItem.innerHTML =
+              '<button onclick="logout()" class="hover:text-[#6B9080] text-red-600">Logout</button>';
+          } else {
+            authNavItem.innerHTML =
+              '<a href="login.html" class="hover:text-[#6B9080]">Login</a>';
+          }
+        }
+      });
+
+      window.logout = async () => {
+        try {
+          await signOut(auth);
+          localStorage.clear();
+          window.location.href = "login.html";
+        } catch (error) {
+          console.error("Error signing out:", error);
+        }
+      };
+    </script>
+
+    <script type="module">
+      import {
+        pipeline,
+        env,
+      } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0";
+
+      const loadingEl = document.getElementById("loading");
+      const textOutput = document.getElementById("text-output");
+      const recsOutput = document.getElementById("recommendations-output");
+      const findingsOutput = document.getElementById(
+        "detected-measurement-results"
+      );
+      const authStatus = document.getElementById("auth-status");
+      let extractedText = "";
+      let currentUser = null;
+
+      document
+        .getElementById("pdf-upload")
+        .addEventListener("change", function () {
+          loadingEl.textContent = this.files.length
+            ? `File selected: ${this.files[0].name}`
+            : "No file uploaded yet.";
+        });
+
+      const saveAnalysis = async (uid, payload) => {
+        try {
+          const docRef = await firebase
+            .firestore()
+            .collection("users")
+            .doc(uid)
+            .collection("analyses")
+            .add({
+              ...payload,
+              createdAt: serverTimestamp(),
+            });
+          return docRef.id;
+        } catch (e) {
+          console.error("Failed to save analysis:", e);
+        }
+      };
+
+      const renderRecCard = (rec, idx) => {
+        const sev = (rec.severity || "").toLowerCase();
+        const sevClass = sev.includes("severe")
+          ? "badge-high"
+          : sev.includes("moderate")
+          ? "badge-medium"
+          : "badge-low";
+        return `
+        <div class="rec-card">
+          <div class="flex items-center justify-between">
+            <h4 class="rec-title">Finding ${idx + 1}: ${
+          rec.findings || "N/A"
+        }</h4>
+            <span class="rec-badge ${sevClass}">${rec.severity || "—"}</span>
+          </div>
+          <ul class="rec-content space-y-1">
+            <li><em>Recommendations:</em>
+              <ul class="list-disc list-inside ml-6">
+                ${(rec.recommendations || [])
+                  .map((r) => `<li>${r}</li>`)
+                  .join("")}
+              </ul>
+            </li>
+            <li><em>Treatment:</em> ${
+              rec.treatment_suggestions || "Not available"
+            }</li>
+            <li><em>Home Care:</em>
+              <ul class="list-disc list-inside ml-6">
+                ${(rec.home_care_guidance || [])
+                  .map((r) => `<li>${r}</li>`)
+                  .join("")}
+              </ul>
+            </li>
+            ${
+              rec.info_link
+                ? `<li><a href="${rec.info_link}" target="_blank" class="rec-link">Learn more</a></li>`
+                : ""
+            }
+          </ul>
+        </div>
+      `;
+      };
+
+      window.onAuthStateChanged(window.firebaseAuth, (user) => {
+        currentUser = user;
+        if (user) {
+          authStatus.textContent = `Signed in as ${user.email || user.uid}`;
+        } else {
+          authStatus.textContent =
+            "Not signed in. Sign in to save and view past analyses.";
+        }
+      });
+
+      document
+        .getElementById("analyze-btn")
+        .addEventListener("click", async () => {
+          const file = document.getElementById("pdf-upload").files[0];
+          const date = document.getElementById("report-date").value;
           if (!file) {
             loadingEl.textContent = "Please upload a file first.";
             return;
           }
+          if (!date) {
+            loadingEl.textContent = "Please select the report date.";
+            return;
+          }
 
           loadingEl.textContent = "Processing with AI...";
-          summaryBox.textContent = "...";
-          recsOutput.innerHTML = "";
+          textOutput.textContent = "";
+          recsOutput.textContent = "";
 
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("model", "bert");
+
+          let data;
           try {
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("model", "bert");
-
-            const response = await fetch(
-              "http://127.0.0.1:5501/analyzer.html",
-              { method: "POST", body: formData }
-            );
-
-            if (!response.ok)
-              throw new Error(`Backend error: ${response.status}`);
-
-            const realData = await response.json();
-            extractedText = realData.ocr_text || "";
-            summaryBox.textContent = extractedText;
-            renderRecommendations(realData.resolutions);
-            loadingEl.textContent = "Analysis complete!";
-          } catch (error) {
-            console.error(error);
-            loadingEl.textContent = "Error: " + error.message;
+            const res = await fetch("http://localhost:5500/analyze/", {
+              method: "POST",
+              body: formData,
+            });
+            if (!res.ok) throw new Error(await res.text());
+            data = await res.json();
+          } catch (err) {
+            console.error(err);
+            loadingEl.textContent = "Error during analysis: " + err.message;
+            return;
           }
-        });
 
-        function renderRecommendations(resolutions) {
-          if (!resolutions || resolutions.length === 0) {
+          extractedText = data.ocr_text || "";
+          textOutput.textContent = extractedText;
+
+          const recs = Array.isArray(data.Detected_Anomolies)
+            ? data.Detected_Anomolies
+            : data.Detected_Anomolies
+            ? [data.Detected_Anomolies]
+            : [];
+          if (data.Detected_Anomolies) {
+            recsOutput.innerHTML = recs
+              .map((rec, i) => renderRecCard(rec, i))
+              .join("");
+          } else {
             recsOutput.textContent = "No recommendations found.";
-            return;
           }
 
-          recsOutput.innerHTML = "";
-
-          resolutions.forEach((rec) => {
-            const severity = rec.severity.toLowerCase();
-            let badgeClass = "rec-badge";
-
-            if (severity.includes("high")) badgeClass += " badge-high";
-            else if (severity.includes("medium")) badgeClass += " badge-medium";
-            else if (severity.includes("low")) badgeClass += " badge-low";
-
-            const card = document.createElement("div");
-            card.className = "rec-card";
-            card.innerHTML = `
-              <div class="flex justify-between items-center mb-3">
-                <h4 class="rec-title">${rec.findings}</h4>
-                <span class="${badgeClass}">${rec.severity}</span>
-              </div>
-              <ul class="rec-content">
-                <li><strong>Recommendations:</strong> ${rec.recommendations.join(
-                  ", "
-                )}</li>
-                <li><strong>Treatment:</strong> ${
-                  rec.treatment_suggestions
-                }</li>
-                <li><strong>Home Care:</strong> ${rec.home_care_guidance.join(
-                  ", "
-                )}</li>
-                <li><a href="${
-                  rec.info_link
-                }" target="_blank" class="rec-link">Learn more</a></li>
-              </ul>
-            `;
-            recsOutput.appendChild(card);
-          });
-        }
-
-        askBtn.addEventListener("click", async () => {
-          const question = userQuestionInput.value.trim();
-
-          if (!question || !extractedText) {
-            alert("Please upload and analyze a report first!");
-            return;
+          const findings = Array.isArray(data.Detected_Measurement_Values)
+            ? data.Detected_Measurement_Values
+            : data.Detected_Measurement_Values
+            ? [data.Detected_Measurement_Values]
+            : [];
+          if (data.Detected_Measurement_Values) {
+            findingsOutput.innerHTML = findings
+              .map((finding, i) => renderRecCard(finding, i))
+              .join("");
+          } else {
+            findingsOutput.textContent = "No measurements found.";
           }
 
-          chatBox.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
-          chatBox.scrollTop = chatBox.scrollHeight;
+          if (currentUser) {
+            await saveAnalysis(currentUser.uid, {
+              reportDate: date,
+              ocr_text: extractedText,
+              resolutions: recs,
+              measurements: findings,
+            });
+          }
 
-          const answerer = await pipeline(
-            "question-answering",
-            "Xenova/distilbert-base-uncased-distilled-squad"
-          );
-          const output = await answerer(question, extractedText);
-
-          chatBox.innerHTML += `<p><strong>Chatbot:</strong> ${output.answer}</p>`;
-          userQuestionInput.value = "";
-          chatBox.scrollTop = chatBox.scrollHeight;
+          loadingEl.textContent = "Analysis complete.";
         });
-      });
+
+      document.getElementById("ask-btn").onclick = async () => {
+        const q = document.getElementById("user-question").value.trim();
+        if (!q) return;
+        const chat = document.getElementById("chat-output");
+        chat.innerHTML += `<p><strong>You:</strong> ${q}</p>`;
+        chat.scrollTop = chat.scrollHeight;
+        env.allowLocalModels = false;
+        const qa = await pipeline(
+          "question-answering",
+          "Xenova/distilbert-base-uncased-distilled-squad"
+        );
+        const out = await qa(q, extractedText);
+        chat.innerHTML += `<p><strong>Chatbot:</strong> ${out.answer}</p>`;
+        document.getElementById("user-question").value = "";
+        chat.scrollTop = chat.scrollHeight;
+      };
     </script>
   </body>
 </html>
