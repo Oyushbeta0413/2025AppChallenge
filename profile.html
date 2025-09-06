@@ -40,12 +40,13 @@
             >
               Edit Profile
             </button>
-            <button
-              onclick="windows.location.href='analyzer.html'"
-              class="mt-2 bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
-            >
-              Go to Analyzer
-            </button>
+            <a href="analyzer.html"
+              ><button
+                class="mt-2 bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5b7e6a] transition"
+              >
+                Go To Analyzer
+              </button>
+            </a>
           </div>
 
           
@@ -213,16 +214,14 @@
         }
       });
 
-      // Load user profile from Firestore
+      
       async function loadUserProfile() {
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            // Update the display immediately
             document.getElementById("userName").textContent = userData.name || "Name not set";
             document.getElementById("userDOB").textContent = userData.dob || "DOB not set";
-            // Also save to localStorage
             localStorage.setItem("userName", userData.name || "");
             localStorage.setItem("userDOB", userData.dob || "");
           }
@@ -231,7 +230,6 @@
         }
       }            
 
-      // Save profile updates to Firestore
       window.saveProfile = async (name, dob) => {
         try {
           await updateDoc(doc(db, 'users', currentUser.uid), {
@@ -247,7 +245,7 @@
         }
       };
 
-      // Logout function
+     
       window.logout = async () => {
         try {
           await signOut(auth);
@@ -258,7 +256,7 @@
         }
       };
 
-      // Storage helpers
+
       function loadProgressData() {
         return JSON.parse(localStorage.getItem("progressData") || "[]");
       }
@@ -308,7 +306,6 @@
           profileView.classList.remove("hidden");
         });
 
-        // === NEW USER WELCOME / CHART LOGIC ===
         const chartSection = document.getElementById("chartSection");
         const welcomeMessage = document.getElementById("welcomeMessage");
         const isNewUser = localStorage.getItem("isNewUser") === "true";
@@ -318,10 +315,13 @@
           chartSection.classList.add("hidden");
         }
 
-        // Chart.js logic
+       //chart logic(line graph)
         const stored = loadProgressData();
         const labels = stored.map((e) => e.date);
-        const dataPoints = stored.map((e) => e.score);
+        const dataPoints = [
+          {x:50, y:7},
+          {x:70, y:30},
+        ];
         const ctx = document.getElementById("progressChart").getContext("2d");
         const progressChart = new Chart(ctx, {
           type: "line",
@@ -332,7 +332,6 @@
                 label: "Health Score",
                 data: dataPoints,
                 borderColor: "#6B9080",
-                backgroundColor: "rgba(164,195,178,0.4)",
                 fill: true,
                 tension: 0.4,
               },
