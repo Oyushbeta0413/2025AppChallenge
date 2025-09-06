@@ -16,10 +16,12 @@ import re
 import difflib
 from synonyms import synonyms
 
+from api_key import GEMINI_API_KEY
+
 hba1c = ["hbaic", "hdate", ""]
 
 import google.generativeai as genai
-genai.configure(api_key="")
+genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
 non_negated_diseases = []
@@ -82,6 +84,7 @@ def analyze_measurements(text, df):
                     results.append({
                             "Condition" : Condition,
                             "Measurement": normalized,
+                            "unit": row['unit'],
                             "Value": value,
                             "severity": row["severity"],
                             "Range": f"{row['low']} to {row['high']} {row['unit']}"
@@ -90,7 +93,7 @@ def analyze_measurements(text, df):
     print (results)
 
     for res in results:
-        final = [res['Condition'], res['Measurement'], res['severity'], res['Value'], res['Range']]
+        final = [res['Condition'], res['Measurement'], res['unit'], res['severity'], res['Value'], res['Range']]
         # final_numbers.append(f"Condition In Concern: {res['Condition']}. Measurement: {res['Measurement']} ({res['severity']}) — {res['Value']} "
         #     f"(Range: {res['Range']})")
         final_numbers.append(final)
@@ -202,7 +205,7 @@ def detect_past_diseases(text, threshold=90):
 
         for i, token in enumerate(sent_tokens):
             if token.lower_ in [p[0]["LOWER"] for p in past_patterns if isinstance(p, list) and "LOWER" in p[0]]:
-                for j in range(i+1, min(i+4, len(sent_tokens))):
+                for j in range(i+1, min(i+6, len(sent_tokens))):
                     for disease_term in diseases:
                         if fuzz.partial_ratio(disease_term.lower(), sent_tokens[j].text.lower()) >= threshold:
                             past_diseases.append(disease_term)
