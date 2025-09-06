@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: med-analyzer
+  labels:
+    app: med-analyzer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: med-analyzer
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: med-analyzer
+    spec:
+      containers:
+        - name: app
+          image: docker.io/nov1vinni/med-analyzer:py39-tess
+          imagePullPolicy: IfNotPresent   # change to Always if you reuse the same tag frequently
+          ports:
+            - containerPort: 8000
+          env:
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: med-analyzer-secrets
+                  key: GEMINI_API_KEY
+            # (Optional) make HF cache explicit to a writable path
+            - name: TRANSFORMERS_CACHE
+              value: /cache/hf
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          volumeMounts:
+            # Writable cache & tmp so model downloads / OCR temp files don't choke
+            - name: cache-volume
+              mountPath: /cache
+            - name: tmp-volume
+              mountPath: /tmp
+      volumes:
+        - name: cache-volume
+          emptyDir: {}
+        - name: tmp-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: med-analyzer-svc
+  labels:
+    app: med-analyzer
+spec:
+  selector:
+    app: med-analyzer
+  type: NodePort
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080

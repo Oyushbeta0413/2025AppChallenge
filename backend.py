@@ -11,7 +11,9 @@ import pandas as pd
 import re
 import os
 import google.generativeai as genai
+from dotenv import load_dotenv
 
+load_dotenv() 
 def extract_non_negated_keywords(text: str) -> list:
     return ["cholesterol", "blood sugar"]
 
@@ -88,6 +90,11 @@ User Question:
 {user_question}
 Assistant Answer:
 """
+
+
+@app.get("/health")
+def health():
+    return {"ok": True}
 
 def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
     try:
