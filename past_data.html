@@ -1,280 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Past Analyzes - CTRL + ALT + HEAL</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --tropical-indigo: rgb(120, 187, 242);
-        --wisteria: rgb(197, 217, 251);
-        --latte-cream: #ffffff;
-      }
-
-      body {
-        font-family: "Rubik", sans-serif;
-        background-color: var(--latte-cream);
-        color: #333;
-      }
-
-      .fade-in {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease-out;
-      }
-      .fade-in.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .glass-card {
-        background: rgba(162, 160, 160, 0.075);
-        backdrop-filter: blur(12px);
-        border-radius: 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 2rem;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
-      .glass-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
-      }
-
-      .nav-link {
-        position: relative;
-        padding-bottom: 4px;
-        transition: color 0.3s;
-      }
-      .nav-link::after {
-        content: "";
-        position: absolute;
-        width: 0%;
-        height: 2px;
-        bottom: 0;
-        left: 0;
-        background-color: var(--tropical-indigo);
-        transition: width 0.3s ease;
-      }
-      .nav-link:hover::after {
-        width: 100%;
-      }
-
-      .nav-link.active-page::after,
-      #mobile-menu a.active-page::after {
-        content: "";
-        position: absolute;
-        width: 100%;
-        height: 2px;
-        bottom: 0;
-        left: 0;
-        background-color: var(--tropical-indigo);
-      }
-    </style>
-  </head>
-  <body>
-    <!-- NAVBAR -->
-    <nav
-      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
-    >
-      <div class="flex justify-between items-center w-full px-6 py-4">
-        <a
-          href="index.html"
-          class="text-2xl font-bold text-black hover:text-[var(--tropical-indigo)] transition"
-        >
-          CTRL + ALT + HEAL
-        </a>
-        <!-- Desktop Menu -->
-        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
-          <li><a href="index.html" class="nav-link">Home</a></li>
-          <li><a href="profile.html" class="nav-link">Profile</a></li>
-          <li><a href="analyzer.html" class="nav-link">Analyzer</a></li>
-          <li><a href="past_data.html" class="nav-link">Past Report</a></li>
-          <li><a href="index.html" class="nav-link">Logout</a></li>
-        </ul>
-        <button
-          id="hamburger"
-          class="md:hidden text-[var(--latte-cream)] text-2xl"
-        >
-          ☰
-        </button>
-      </div>
-
-      <ul
-        id="mobile-menu"
-        class="hidden flex-col space-y-4 bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg mt-2 p-4 mx-6 md:hidden"
-      >
-        <li>
-          <a
-            href="index.html"
-            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
-            >Home</a
-          >
-        </li>
-        <li>
-          <a
-            href="analyzer.html"
-            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
-            >Analyzer</a
-          >
-        </li>
-        <li>
-          <a
-            href="past_data.html"
-            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
-            >Past Reports</a
-          >
-        </li>
-        <li>
-          <a
-            href="profile.html"
-            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
-            >Profile</a
-          >
-        </li>
-        <li>
-          <a
-            href="login.html"
-            class="block text-gray-800 hover:text-[var(--tropical-indigo)]"
-            >Login</a
-          >
-        </li>
+<head>
+  <meta charset="UTF-8">
+  <title>Past Analyzes - CTRL + ALT + HEAL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#F7F8F9] min-h-screen">
+  <nav class="bg-white border border-gray-200 px-6 py-4 mb-8">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
+        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
+        <li><a href="past_data.html" class="hover:text-[#6B9080]">Past Reports</a></li>
+        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+        <li id="authNavItem"><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
       </ul>
-    </nav>
+    </div>
+  </nav>
 
-    <!-- MAIN CONTENT -->
-    <main class="max-w-6xl mx-auto px-6 py-28 fade-in">
-      <h1 class="text-3xl font-bold text-[var(--tropical-indigo)] mb-6">
-        Your Past Analyzes
-      </h1>
-      <p id="auth-status" class="text-sm text-gray-500 mb-6">
-        Checking sign-in status…
-      </p>
-      <div id="recs-container" class="space-y-4">
-        <p class="text-sm text-gray-500">
-          Sign in to view your saved analyses.
-        </p>
-      </div>
-    </main>
+  <main class="max-w-4xl mx-auto px-4">
+    <h1 class="text-2xl font-bold text-green-700 mb-4">Your Past Analyzes</h1>
+    <p id="auth-status" class="text-sm text-gray-500 mb-6">Checking sign-in status…</p>
 
-    <!-- SCRIPTS -->
-    <script>
-      const hamburger = document.getElementById("hamburger");
-      const mobileMenu = document.getElementById("mobile-menu");
-      hamburger.addEventListener("click", () =>
-        mobileMenu.classList.toggle("hidden")
-      );
+    <div id="recs-container" class="space-y-4">
+      <p class="text-sm text-gray-500">Sign in to view your saved analyzes.</p>
+    </div>
+  </main>
 
-      // Highlight active page
-      const currentPath = window.location.pathname.split("/").pop();
-      document.querySelectorAll(".nav-link").forEach((link) => {
-        if (link.getAttribute("href") === currentPath)
-          link.classList.add("active-page");
-      });
-      document.querySelectorAll("#mobile-menu a").forEach((link) => {
-        if (link.getAttribute("href") === currentPath)
-          link.classList.add("active-page");
-      });
+  
 
-      // Fade-in animation
-      const fadeObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) entry.target.classList.add("show");
-          });
-        },
-        { threshold: 0.1 }
-      );
-      document
-        .querySelectorAll(".fade-in")
-        .forEach((el) => fadeObserver.observe(el));
-    </script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script>
-      // Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyAPhM_Ee7cLzyKHs5zyFy8g5ZOk9-pubRI",
-        authDomain: "login-tutorial-7a9e1.firebaseapp.com",
-        projectId: "login-tutorial-7a9e1",
-        storageBucket: "login-tutorial-7a9e1.firebasestorage.app",
-        messagingSenderId: "491093197824",
-        appId: "1:491093197824:web:9f86659034af7e6a8244e5",
-        measurementId: "G-JM7T9N6ZLZ",
-      };
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const db = firebase.firestore();
+  <script type="module">
+    import { getFirestore, collection, query, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
-      const statusEl = document.getElementById("auth-status");
-      const recsEl = document.getElementById("recs-container");
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPhM_Ee7cLzyKHs5zyFy8g5ZOk9-pubRI",
+      authDomain: "login-tutorial-7a9e1.firebaseapp.com",
+      projectId: "login-tutorial-7a9e1",
+      storageBucket: "login-tutorial-7a9e1.firebasestorage.app",
+      messagingSenderId: "491093197824",
+      appId: "1:491093197824:web:9f866..."
+    };
 
-      function renderAnalysis(item) {
-        const d =
-          item.createdAt && item.createdAt.toDate
-            ? item.createdAt.toDate().toLocaleString()
-            : "";
-        return `
-        <div class="glass-card fade-in">
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Update navigation based on auth state
+    onAuthStateChanged(auth, (user) => {
+      const authNavItem = document.getElementById('authNavItem');
+      if (user) {
+        // User is logged in - show logout
+        authNavItem.innerHTML = '<button onclick="logout()" class="hover:text-[#6B9080] text-red-600">Logout</button>';
+      } else {
+        // User is logged out - show login
+        authNavItem.innerHTML = '<a href="login.html" class="hover:text-[#6B9080]">Login</a>';
+      }
+    });
+
+    // Logout function
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error("Error signing out:", error);
+      }
+    };
+
+    const statusEl = document.getElementById("auth-status");
+    const recsEl   = document.getElementById("recs-container");
+
+
+    function renderAnalysis(item) {
+      const d = item.createdAt && item.createdAt.toDate ? item.createdAt.toDate().toLocaleString() : "";
+      return `
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow">
           <div class="flex justify-between mb-2">
-            <div class="font-semibold text-[var(--tropical-indigo)]">Report: ${
-              item.reportDate || "N/A"
-            }</div>
+            <div class="font-semibold text-green-700">Report: ${item.reportDate || "N/A"}</div>
             <div class="text-xs text-gray-500">${d}</div>
           </div>
-          <pre class="whitespace-pre-wrap text-sm text-gray-700 mb-2">${
-            item.ocr_text || ""
-          }</pre>
-          ${(Array.isArray(item.resolutions) ? item.resolutions : [])
-            .map(
-              (r, i) => `
-              <div class="border-t border-gray-200 pt-2 mt-2">
-                <div class="font-medium">Finding ${i + 1}: ${
-                r.findings || ""
-              }</div>
-                <div class="text-sm text-gray-600">Severity: ${
-                  r.severity || ""
-                }</div>
-                <div class="text-sm text-gray-600">Recommendations: ${(
-                  r.recommendations || []
-                ).join(", ")}</div>
-              </div>
-            `
-            )
-            .join("")}
+          <pre class="whitespace-pre-wrap text-sm text-gray-700 mb-2">${item.ocr_text || ""}</pre>
+          ${(Array.isArray(item.resolutions) ? item.resolutions : []).map((r,i) => `
+            <div class="border-t border-gray-200 pt-2 mt-2">
+              <div class="font-medium">Finding ${i+1}: ${r.findings || ""}</div>
+              <div class="text-sm text-gray-600">Severity: ${r.severity || ""}</div>
+              <div class="text-sm text-gray-600">Recommendations: ${(r.recommendations || []).join(", ")}</div>
+            </div>
+          `).join("")}
         </div>
       `;
-      }
+    }
 
-      auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          statusEl.textContent = `Signed in as ${user.email || user.uid}`;
-          const snap = await db
-            .collection("users")
-            .doc(user.uid)
-            .collection("analyses")
-            .orderBy("createdAt", "desc")
-            .get();
-          if (snap.empty) {
-            recsEl.innerHTML =
-              '<p class="text-sm text-gray-500">No saved analyses yet.</p>';
-            return;
-          }
-          recsEl.innerHTML = snap.docs
-            .map((doc) => renderAnalysis(doc.data()))
-            .join("");
-        } else {
-          statusEl.textContent = "Not signed in.";
-          recsEl.innerHTML =
-            '<p class="text-sm text-gray-500">Please sign in to see your analyses.</p>';
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        statusEl.textContent = `Signed in as ${user.email || user.uid}`;
+      const q = query(
+        collection(db, "users", user.uid, "analyses"),
+        orderBy("createdAt", "desc")
+      );
+      const snap = await getDocs(q);
+        if (snap.empty) {
+          recsEl.innerHTML = '<p class="text-sm text-gray-500">No saved analyses yet.</p>';
+          return;
         }
-      });
-    </script>
-  </body>
+        recsEl.innerHTML = snap.docs.map(doc => renderAnalysis(doc.data())).join("");
+      } else {
+        statusEl.textContent = "Not signed in.";
+        recsEl.innerHTML = '<p class="text-sm text-gray-500">Please sign in to see your analyses.</p>';
+      }
+    });
+  </script>
+</body>
 </html>
