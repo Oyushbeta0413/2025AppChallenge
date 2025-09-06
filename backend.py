@@ -6,15 +6,20 @@ import pytesseract
 from PIL import Image
 import io
 import fitz  
+import base64
 import traceback
 import pandas as pd
 import re
+from google.generativeai import generative_models
+import google.generativeai as genai
 
+from api_key import GEMINI_API_KEY as API_KEY
 from bert import analyze_with_clinicalBert, classify_disease_and_severity, extract_non_negated_keywords, analyze_measurements, detect_past_diseases
 from disease_links import diseases as disease_links
 from disease_steps import disease_next_steps
 from disease_support import disease_doctor_specialty, disease_home_care
 
+model = genai.GenerativeModel('gemini-1.5-flash')
 df = pd.read_csv("measurement.csv")
 df.columns = df.columns.str.lower()
 df['measurement'] = df['measurement'].str.lower()
@@ -28,7 +33,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 def extract_images_from_pdf_bytes(pdf_bytes: bytes) -> list:
     print("***Start of Code***")
@@ -50,8 +54,23 @@ def clean_ocr_text(text: str) -> str:
 
 
 def ocr_text_from_image(image_bytes: bytes) -> str:
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    return pytesseract.image_to_string(image)
+    base64_image = base64.b64encode(image_bytes).decode('utf-8')
+
+    image_content = {
+        'mime_type': 'image/jpeg',
+        'data': base64_image
+    }
+
+    prompt = "Could you read this document and just take all the text that is in it and just paste it back to me in text format. Open and read this document:"
+
+    response = model.generate_content(
+        [prompt, image_content]
+    )
+
+    response_text = response.text
+    print(response_text)
+
+    return response_text
 
 @app.post("/analyze/")
 async def analyze(
