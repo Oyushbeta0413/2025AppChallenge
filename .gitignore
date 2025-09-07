@@ -1,0 +1,6 @@
+.venv
+/api_key.py
+api_key.py
+firebase_key.json
+medical-analyzer-9a748-firebase-adminsdk-fbsvc-2f3162d884.json
+.env
