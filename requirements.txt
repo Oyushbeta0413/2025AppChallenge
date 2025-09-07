@@ -25,3 +25,5 @@ fuzzywuzzy==0.18.0
 python-Levenshtein==0.21.1
 pandas==2.0.3
 regex==2023.8.8
+firebase-admin==5.1.0
+python-dotenv==1.0.0
