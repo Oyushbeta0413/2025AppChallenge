@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Profile - CTRL + ALT + HEAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --tropical-indigo: rgb(120, 187, 242);
+        --wisteria: rgb(197, 217, 251);
+        --latte-cream: #ffffff;
+      }
+      body {
+        font-family: "Rubik", sans-serif;
+        background-color: var(--latte-cream);
+        color: #333;
+      }
+      .btn-primary {
+        background-color: var(--tropical-indigo);
+        color: white;
+        transition: 0.3s;
+      }
+      .btn-primary:hover {
+        background-color: var(--wisteria);
+        color: #333;
+      }
+      .avatar {
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        object-fit: cover;
+        cursor: pointer;
+        background-color: #e5e7eb;
+      }
+    </style>
+  </head>
+  <body class="text-gray-800 min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav
+      class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/20 border-b border-white/30 shadow-md"
+    >
+      <div
+        class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <a
+          href="index.html"
+          class="text-2xl font-bold hover:text-[var(--tropical-indigo)] transition"
+          >CTRL + ALT + HEAL</a
+        >
+        <ul class="hidden md:flex space-x-6 font-medium text-gray-800">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="analyzer.html">Analyzer</a></li>
+          <li><a href="profile.html">Profile</a></li>
+          <li><a href="login.html">Logout</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+        <button id="hamburger" class="md:hidden text-2xl">☰</button>
+      </div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-6 pt-24 space-y-6">
+      <div class="flex justify-between items-center mb-4">
+       
+        <button id="togglePastReportsBtn" class="btn-primary px-4 py-2 rounded text-sm">
+          Show/Hide Past Reports
+        </button>
+      </div>
+      
+      <!-- Welcome -->
+      <div class="bg-white rounded-lg p-6 shadow">
+        <h2 class="text-2xl font-bold text-[var(--tropical-indigo)] mb-2">
+          Welcome to CTRL + ALT + HEAL! 🎉
+        </h2>
+        <p class="text-gray-700 mb-2">
+          Track progress, crush goals, and vibe with your health journey.
+        </p>
+      </div>
+      <!-- Profile + Stats -->
+      <div class="flex flex-col lg:flex-row gap-6 mt-10 items-stretch">
+        <!-- LEFT: Profile Container -->
+        <div class="flex-1 flex flex-col">
+          <!-- PROFILE VIEW -->
+          <div
+            id="profileViewSection"
+            class="bg-white shadow rounded-lg p-6 flex-1 flex flex-col justify-between"
+          >
+            <div class="flex flex-col lg:flex-row gap-6 items-start">
+              <div class="flex flex-col items-center space-y-4">
+                <img
+                  id="profilePic"
+                  class="avatar"
+                  src=""
+                  alt="Profile Picture"
+                />
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept="image/*"
+                  class="hidden"
+                />
+                <button
+                  id="editProfileBtn"
+                  class="btn-primary px-4 py-2 rounded"
+                >
+                  Edit Profile
+                </button>
+              </div>
+              <div class="flex-1 flex flex-col justify-start space-y-2">
+                <h1 class="text-3xl font-semibold text-gray-800">
+                  Your Profile
+                </h1>
+                <p class="text-gray-700">
+                  Name: <span id="userName" class="font-medium"></span>
+                </p>
+                <p class="text-gray-700">
+                  DOB: <span id="userDOB" class="font-medium"></span>
+                </p>
+                <p class="text-gray-700">
+                  Big Things We Should Fix:
+                  <span id="userFix" class="font-medium"></span>
+                </p>
+                <p class="text-gray-700">
+                  Health Goals: <span id="userGoals" class="font-medium"></span>
+                </p>
+                <p class="text-gray-700">
+                  Bio:
+                  <span id="userBio" class="font-medium">No bio yet 📝</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROFILE EDIT -->
+          <div
+            id="profileEditSection"
+            class="hidden bg-white shadow rounded-lg p-6 flex-1 flex flex-col justify-between"
+          >
+            <div class="flex flex-col sm:flex-row items-start space-x-6">
+              <div class="flex flex-col items-center mb-4 sm:mb-0">
+                <img
+                  id="editProfilePic"
+                  class="avatar"
+                  src=""
+                  alt="Profile Picture"
+                />
+                <input
+                  type="file"
+                  id="editFileInput"
+                  accept="image/*"
+                  class="hidden"
+                />
+              </div>
+              <div class="flex-1">
+                <h1 class="text-3xl font-semibold text-gray-800 mb-4">
+                  Edit Profile
+                </h1>
+                <div class="space-y-4">
+                  <div>
+                    <label
+                      for="inputName"
+                      class="block text-sm font-medium text-gray-600"
+                      >Name</label
+                    >
+                    <input
+                      type="text"
+                      id="inputName"
+                      class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="inputDOB"
+                      class="block text-sm font-medium text-gray-600"
+                      >Date of Birth</label
+                    >
+                    <input
+                      type="date"
+                      id="inputDOB"
+                      class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="inputFix"
+                      class="block text-sm font-medium text-gray-600"
+                      >Big Things We Should Fix</label
+                    >
+                    <textarea
+                      id="inputFix"
+                      rows="2"
+                      class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    ></textarea>
+                  </div>
+                  <div>
+                    <label
+                      for="inputGoals"
+                      class="block text-sm font-medium text-gray-600"
+                      >Health Goals</label
+                    >
+                    <textarea
+                      id="inputGoals"
+                      rows="2"
+                      class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-[var(--tropical-indigo)] focus:outline-none"
+                    ></textarea>
+                  </div>
+                </div>
+                <div class="flex space-x-2 mt-4">
+                  <button
+                    id="saveProfileBtn"
+                    class="btn-primary px-4 py-2 rounded"
+                  >
+                    Save
+                  </button>
+                  <button
+                    id="cancelProfileBtn"
+                    class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Mini Stats -->
+<div class="w-full lg:w-1/3 flex flex-col justify-between gap-4">
+  <!-- Reports Uploaded -->
+  <div class="bg-white shadow rounded-lg p-4 flex-1 flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[var(--tropical-indigo)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h5l2 3h11v11H3V7z" />
+    </svg>
+    <div class="flex-1">
+      <p class="text-sm text-gray-500">Reports Uploaded</p>
+      <p class="font-semibold text-lg" id="reportsCount">0</p>
+    </div>
+  </div>
+
+  <!-- Tests In Range -->
+  <div class="bg-white shadow rounded-lg p-4 flex-1 flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+    <div class="flex-1">
+      <p class="text-sm text-gray-500">Tests In Range In Latest Report</p>
+      <p class="font-semibold text-lg" id="testsInRange">0</p>
+    </div>
+  </div>
+
+  <!-- Tests Out of Range -->
+  <div class="bg-white shadow rounded-lg p-4 flex-1 flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    <div class="flex-1">
+      <p class="text-sm text-gray-500">Tests Out of Range In Latest Report</p>
+      <p class="font-semibold text-lg" id="testsOutOfRange">0</p>
+    </div>
+  </div>
+</div>
+
+
+      </div>
+
+      
+                
+        
+
+      <!-- Reports Section -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-[var(--tropical-indigo)] mb-3">
+          Your Reports
+        </h3>
+        <div id="reportsSection" class="text-gray-600 text-center space-y-3">
+          <p id="reportStatus">📂 No reports uploaded yet.</p>
+          <a
+            id="sampleReportLink"
+            href="/sample_report.pdf"
+            target="_blank"
+            class="text-blue-600 hover:underline hidden"
+            >sample_report.pdf</a
+          >
+          <div class="mt-2 flex justify-center gap-4">
+            <button id="uploadBtn" class="btn-primary px-4 py-2 rounded"  onclick="window.location.href='analyzer.html'">
+             Upload Report
+            </button>
+            <button id="toggleReportBtn" class="btn-primary px-4 py-2 rounded">
+              Use Sample Report
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+      
+      <!-- Past Reports Section with Number-Line Bars -->
+     <div class="bg-white shadow rounded-lg p-6 mt-6  ">
+     <h3 class="text-lg font-semibold text-[var(--tropical-indigo)] mb-4">
+    Past Reports
+  </h3>
+  <div id="pastReportsSection" class="flex flex-col gap-4 ">
+ <!-- Report 3 -->
+ <div class="flex flex-col bg-[var(--wisteria)] p-4 rounded-lg shadow hover:shadow-md transition">
+  <div class="flex justify-between items-center cursor-pointer report-header" onclick="toggleDetails(this)">
+    <div class="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[var(--tropical-indigo)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      <p class="font-medium text-gray-800">Annual_Physical_Mar2025.pdf</p>
+    </div>
+    <div class="flex gap-2 flex-shrink-0">
+      <span class="px-2 py-1 rounded-full bg-green-200 text-green-800 text-xs font-semibold">In Range: 2</span>
+      <span class="px-2 py-1 rounded-full bg-red-200 text-red-800 text-xs font-semibold">Out of Range: 0</span>
+    </div>
+  </div>
+  <div class="report-details mt-2 hidden w-full bg-white rounded p-3 border border-gray-300 text-gray-700">
+    <ul class="space-y-4 text-sm">
+      <li>
+        <div class="flex justify-between mb-1">
+          <span>Hemoglobin: 14.2 g/dL</span>
+          <span class="text-xs text-gray-500">(12-16)</span>
+        </div>
+        <div class="relative w-full h-4 bg-gray-200 rounded">
+          <div class="absolute h-4 rounded bg-green-400" style="width: 70.5%;"></div>
+          <span class="absolute -top-5 text-xs font-semibold text-gray-800" style="left: 70.5%;">14.2</span>
+          <div class="absolute top-full left-0 w-full flex justify-between mt-1 text-xs text-gray-500">
+            <span>12</span>
+            <span>16</span>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="flex justify-between mb-1">
+          <span>Cholesterol: 180 mg/dL</span>
+          <span class="text-xs text-gray-500">(125-200)</span>
+        </div>
+        <div class="relative w-full h-6 bg-gray-200 rounded overflow-hidden">
+          <div class="absolute h-6 rounded bg-green-400" style="width: 90%;"></div>
+          <span class="absolute top-1/2 transform -translate-y-1/2 text-xs font-semibold text-gray-800" style="left: 90%;">180</span>
+          <div class="absolute top-full left-0 w-full flex justify-between mt-1 text-xs text-gray-500">
+            <span>125</span>
+            <span>200</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+<!-- Report 2 -->
+<div class="flex flex-col bg-[var(--wisteria)] p-4 rounded-lg shadow hover:shadow-md transition">
+  <div class="flex justify-between items-center cursor-pointer report-header" onclick="toggleDetails(this)">
+    <div class="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[var(--tropical-indigo)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      <p class="font-medium text-gray-800">Checkup_Feb2025.pdf</p>
+    </div>
+    <div class="flex gap-2 flex-shrink-0">
+      <span class="px-2 py-1 rounded-full bg-green-200 text-green-800 text-xs font-semibold">In Range: 1</span>
+      <span class="px-2 py-1 rounded-full bg-red-200 text-red-800 text-xs font-semibold">Out of Range: 1</span>
+    </div>
+  </div>
+  <div class="report-details mt-2 hidden w-full bg-white rounded p-3 border border-gray-300 text-gray-700">
+    <ul class="space-y-4 text-sm">
+      <li>
+        <div class="flex justify-between mb-1">
+          <span>Glucose: 105 mg/dL</span>
+          <span class="text-xs text-gray-500">(70-99)</span>
+        </div>
+        <div class="relative w-full h-4 bg-gray-200 rounded">
+          <div class="absolute h-4 rounded bg-red-400" style="width: calc(105/99*100%);"></div>
+          <span class="absolute -top-5 text-xs font-semibold text-gray-800" style="left: 100%;">105</span>
+          <div class="absolute top-full left-0 w-full flex justify-between mt-1 text-xs text-gray-500">
+            <span>70</span>
+            <span>99</span>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="flex justify-between mb-1">
+          <span>Vitamin D: 40 ng/mL</span>
+          <span class="text-xs text-gray-500">(30-100)</span>
+        </div>
+        <div class="relative w-full h-4 bg-gray-200 rounded">
+          <div class="absolute h-4 rounded bg-green-400" style="width: 12.5%;"></div>
+          <span class="absolute -top-5 text-xs font-semibold text-gray-800" style="left: 12.5%;">40</span>
+          <div class="absolute top-full left-0 w-full flex justify-between mt-1 text-xs text-gray-500">
+            <span>30</span>
+            <span>100</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+    <!-- Report 1 -->
+    <div class="flex flex-col bg-[var(--wisteria)] p-4 rounded-lg shadow hover:shadow-md transition">
+      <div class="flex justify-between items-center cursor-pointer report-header" onclick="toggleDetails(this)">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[var(--tropical-indigo)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <p class="font-medium text-gray-800">Bloodwork_Jan2025.pdf</p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <span class="px-2 py-1 rounded-full bg-green-200 text-green-800 text-xs font-semibold">In Range: 1</span>
+          <span class="px-2 py-1 rounded-full bg-red-200 text-red-800 text-xs font-semibold">Out of Range: 1</span>
+        </div>
+      </div>
+      <div class="report-details mt-2 hidden w-full bg-white rounded p-3 border border-gray-300 text-gray-700">
+        <ul class="space-y-4 text-sm">
+          <li>
+            <div class="flex justify-between mb-1">
+              <span>Hemoglobin: 13.5 g/dL</span>
+              <span class="text-xs text-gray-500">(12-16)</span>
+            </div>
+            <div class="relative w-full h-4 bg-gray-200 rounded">
+              <div class="absolute h-4 rounded bg-green-400" style="width: 56.25%;"></div>
+              <span class="absolute -top-5 text-xs font-semibold text-gray-800" style="left: 56.25%;">13.5</span>
+              <div class="absolute top-full left-0 w-full flex justify-between mt-1 text-xs text-gray-500">
+                <span>12</span>
+                <span>16</span>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="flex justify-between mb-1">
+              <span>Cholesterol: 210 mg/dL</span>
+              <span class="text-xs text-gray-500">(125-200)</span>
+            </div>
+            <div class="relative w-full h-6 bg-gray-200 rounded overflow-hidden">
+              <div class="absolute h-6 rounded" style="width: calc(min(210/200*100%, 100%)); background-color: #f87171;"></div>
+              <span class="absolute top-1/2 transform -translate-y-1/2 text-xs font-semibold text-gray-800" style="left: calc(min(210/200*100%, 95%));">210</span>
+              <div class="absolute top-full left-0 w-full flex justify-between mt-1 text-xs text-gray-500">
+                <span>125</span>
+                <span>200</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    
+
+   
+
+  </div>
+</div>
+
+<script>
+  function toggleDetails(element) {
+  const details = element.parentElement.querySelector('.report-details');
+  if (details) details.classList.toggle('hidden');
+}
+</script>
+
+
+
+    </main>
+   
+
+
+    <footer class="py-6 bg-[var(--wisteria)] text-gray-800 mt-8">
+      <div
+        class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm"
+      >
+        <p>&copy; 2025 CTRL + ALT + HEAL. All rights reserved.</p>
+        <div class="flex space-x-4 mt-3 md:mt-0">
+          <a href="#" class="hover:text-[var(--tropical-indigo)] transition"
+            >Privacy Policy</a
+          >
+          <a href="#" class="hover:text-[var(--tropical-indigo)] transition"
+            >Terms of Service</a
+          >
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Profile Section
+      const profileView = document.getElementById("profileViewSection");
+      const profileEdit = document.getElementById("profileEditSection");
+      const editBtn = document.getElementById("editProfileBtn");
+      const saveBtn = document.getElementById("saveProfileBtn");
+      const cancelBtn = document.getElementById("cancelProfileBtn");
+
+      const inputName = document.getElementById("inputName");
+      const inputDOB = document.getElementById("inputDOB");
+      const inputFix = document.getElementById("inputFix");
+      const inputGoals = document.getElementById("inputGoals");
+
+      const profilePic = document.getElementById("profilePic");
+      const editProfilePic = document.getElementById("editProfilePic");
+      const fileInput = document.getElementById("fileInput");
+      const editFileInput = document.getElementById("editFileInput");
+
+      editBtn.addEventListener("click", () => {
+        inputName.value = localStorage.getItem("userName") || "";
+        inputDOB.value = localStorage.getItem("userDOB") || "";
+        inputFix.value = localStorage.getItem("userFix") || "";
+        inputGoals.value = localStorage.getItem("userGoals") || "";
+        profileView.classList.add("hidden");
+        profileEdit.classList.remove("hidden");
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        profileEdit.classList.add("hidden");
+        profileView.classList.remove("hidden");
+      });
+
+      saveBtn.addEventListener("click", () => {
+        localStorage.setItem("userName", inputName.value.trim());
+        localStorage.setItem("userDOB", inputDOB.value);
+        localStorage.setItem("userFix", inputFix.value.trim());
+        localStorage.setItem("userGoals", inputGoals.value.trim());
+
+        document.getElementById("userName").textContent =
+          inputName.value.trim() || "Name";
+        document.getElementById("userDOB").textContent =
+          inputDOB.value || "DOB";
+        document.getElementById("userFix").textContent =
+          inputFix.value.trim() || "None set";
+        document.getElementById("userGoals").textContent =
+          inputGoals.value.trim() || "None set";
+
+        profileEdit.classList.add("hidden");
+        profileView.classList.remove("hidden");
+      });
+
+      profilePic.addEventListener("click", () => fileInput.click());
+      editProfilePic.addEventListener("click", () => editFileInput.click());
+
+      function handleFileUpload(file, targetImg) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          targetImg.src = reader.result;
+          localStorage.setItem("profilePic", reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files[0]) handleFileUpload(e.target.files[0], profilePic);
+      });
+      editFileInput.addEventListener("change", (e) => {
+        if (e.target.files[0])
+          handleFileUpload(e.target.files[0], editProfilePic);
+      });
+
+      // Load saved profile
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("userName").textContent =
+          localStorage.getItem("userName") || "Name";
+        document.getElementById("userDOB").textContent =
+          localStorage.getItem("userDOB") || "DOB";
+        document.getElementById("userFix").textContent =
+          localStorage.getItem("userFix") || "None set";
+        document.getElementById("userGoals").textContent =
+          localStorage.getItem("userGoals") || "None set";
+
+        const savedPic = localStorage.getItem("profilePic");
+        if (savedPic) {
+          profilePic.src = savedPic;
+          editProfilePic.src = savedPic;
+        }
+      });
+      const pastReportsSection = document.getElementById("pastReportsSection");
+      const togglePastReportsBtn = document.getElementById("togglePastReportsBtn");
+
+      togglePastReportsBtn.addEventListener("click", () => {
+      pastReportsSection.classList.toggle("hidden");
+});
+
+
+      // Toggle Sample Report
+      const reportsCountEl = document.getElementById("reportsCount");
+      const goalsCompletedEl = document.getElementById("goalsCompleted");
+      const achievementsEl = document.getElementById("achievements");
+      const reportStatusEl = document.getElementById("reportStatus");
+      const sampleReportLink = document.getElementById("sampleReportLink");
+      const toggleReportBtn = document.getElementById("toggleReportBtn");
+
+      let sampleActive = false;
+
+      const sampleReport = {
+        name: "sample_report.pdf",
+        goalsCompleted: 2,
+        totalGoals: 2,
+        improvements: ["Hydration", "Sleep", "Exercise"],
+      };
+      function updateMiniStats() {
+  if (sampleActive) {
+    reportsCountEl.textContent = 1;
+
+    // Count tests in range vs out of range
+    const inRange = sampleReport.goalsCompleted; // using sample data
+    const outOfRange = sampleReport.totalGoals - sampleReport.goalsCompleted;
+
+    document.getElementById("testsInRange").textContent = inRange;
+    document.getElementById("testsOutOfRange").textContent = outOfRange;
+
+    reportStatusEl.textContent = "📂 Sample report uploaded!";
+    sampleReportLink.classList.remove("hidden");
+  } else {
+    reportsCountEl.textContent = 0;
+    document.getElementById("testsInRange").textContent = 0;
+    document.getElementById("testsOutOfRange").textContent = 0;
+    reportStatusEl.textContent = "📂 No reports uploaded yet.";
+    sampleReportLink.classList.add("hidden");
+  }
+}
+
+
+      toggleReportBtn.addEventListener("click", () => {
+        sampleActive = !sampleActive;
+        updateMiniStats();
+      });
+
+      updateMiniStats();
+      
+    </script>
+  </body>
+</html>

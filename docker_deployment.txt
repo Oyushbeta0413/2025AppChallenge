@@ -1,0 +1,15 @@
+
+docker build --platform=linux/amd64 -t docker.io/nov1vinni/med-analyzer:py39-tess .
+
+install colima
+
+colima start --arch x86_64 --dns 8.8.8.8
+
+colima start --profile amd64 --arch x86_64 --memory 6 --cpu 4
+
+
+
+docker context use colima
+docker login
+docker build --platform=linux/amd64 -t docker.io/nov1vinni/med-analyzer:py39-tess .
+docker push docker.io/nov1vinni/med-analyzer:py39-tess

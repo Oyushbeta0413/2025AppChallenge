@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Document Analyzer | CTRL + ALT + HEAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#F7F8F9] font-sans text-gray-800 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white border border-gray-200 px-6 py-4 mb-8">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-2xl font-bold text-[#6B9080]">CTRL + ALT + HEAL</a>
+      <ul class="flex space-x-6 text-sm font-medium text-gray-700">
+        <li><a href="index.html" class="hover:text-[#6B9080]">Home</a></li>
+        <li><a href="analyzer.html" class="hover:text-[#6B9080]">Analyzer</a></li>
+        <li><a href="profile.html" class="hover:text-[#6B9080]">Profile</a></li>
+        <li><a href="login.html" class="hover:text-[#6B9080]">Login</a></li>
+        <li><a href="about.html" class="hover:text-[#6B9080]">About Us</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 mb-16">
+    <!-- Upload & Score Section -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-[#6B9080] mb-4">Upload & Analyze Your Medical PDF or Image</h2>
+      <input type="file" id="pdf-upload" accept=".pdf, image/*"
+             class="w-full mb-4 border border-gray-300 rounded px-3 py-2" />
+      <input type="date" id="report-date"
+             class="w-full mb-4 border border-gray-300 rounded px-3 py-2"
+             placeholder="Report Date" />
+      <button id="analyze-btn"
+              class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F]">
+        Analyze with AI
+      </button>
+      <p id="loading" class="text-gray-600 mt-2">No file uploaded yet.</p>
+    </div>
+
+    <!-- Extracted Text -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Extracted Text</h3>
+      <div id="text-output" class="whitespace-pre-wrap h-60 overflow-auto bg-[#FAFBFC] text-sm text-gray-800 border border-gray-200 rounded p-4">
+        OCR results will appear here.
+      </div>
+    </div>
+
+    <!-- AI Recommendations -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">AI Recommendations</h3>
+      <div id="recommendations-output" class="whitespace-pre-wrap h-60 overflow-auto bg-[#FAFBFC] text-sm text-gray-800 border border-gray-200 rounded p-4">
+        Recommendations will appear here.
+      </div>
+    </div>
+
+    <!-- QA Chatbot -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-[#6B9080] mb-3">Ask Chatbot</h3>
+      <div id="chat-output" class="space-y-2 h-48 overflow-auto bg-[#FAFBFC] text-sm text-gray-800 border border-gray-200 rounded p-4">
+        <p><strong>Chatbot:</strong> Ask me something about your report</p>
+      </div>
+      <div class="flex mt-4 gap-2">
+        <input type="text" id="user-question" placeholder="Ask a question..."
+               class="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#6B9080]" />
+        <button id="ask-btn" class="bg-[#6B9080] text-white px-4 py-2 rounded hover:bg-[#5B7A6F]">
+          Ask
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0';
+
+    const loadingEl    = document.getElementById('loading');
+    const textOutput   = document.getElementById('text-output');
+    const recsOutput   = document.getElementById('recommendations-output');
+    let extractedText  = "";
+
+    document.getElementById('pdf-upload').addEventListener('change', function() {
+      loadingEl.textContent = this.files.length
+        ? `File selected: ${this.files[0].name}`
+        : 'No file uploaded yet.';
+    });
+
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+      const file  = document.getElementById('pdf-upload').files[0];
+      const date  = document.getElementById('report-date').value;
+      if (!file)   { loadingEl.textContent = "Please upload a file first.";  return; }
+      if (!date)   { loadingEl.textContent = "Please select the report date."; return; }
+
+      loadingEl.textContent = "Processing with AI...";
+      textOutput.textContent = "";
+      recsOutput.textContent = "";
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('model', 'bert');
+      try {
+        const res = await fetch('http://localhost:9000/analyze/', {
+          method: 'POST', body: formData
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+
+        // OCR text
+        extractedText = data.ocr_text || "";
+        textOutput.textContent = extractedText;
+
+        
+        console.log("AI recs from backend:", data.resolutions);
+        let recs = [];
+        if (Array.isArray(data.resolutions)) {
+          recs = data.resolutions;
+        } else if (data.resolutions && typeof data.resolutions === 'object') {
+          recs = [data.resolutions];
+        }
+
+        if (recs.length) {
+          recsOutput.innerHTML = `
+            <ul class="list-disc list-inside space-y-4">
+              ${recs.map((rec, i) => `
+                <li>
+                  <strong>Finding ${i+1}:</strong> ${rec.findings} (Severity: ${rec.severity})
+                  <ul class="list-disc list-inside ml-6 space-y-1">
+                    <li><em>Recommendations:</em>
+                      <ul class="list-disc list-inside ml-6">
+                        ${(rec.recommendations || []).map(r=>`<li>${r}</li>`).join('')}
+                      </ul>
+                    </li>
+                    <li><em>Treatment:</em> ${rec.treatment_suggestions || 'Not available'}</li>
+                    <li><em>Home Care:</em>
+                      <ul class="list-disc list-inside ml-6">
+                        ${(rec.home_care_guidance || []).map(r=>`<li>${r}</li>`).join('')}
+                      </ul>
+                    </li>
+                    ${rec.info_link
+                       ? `<li><a href="${rec.info_link}" target="_blank" class="text-blue-600 underline">Learn more</a></li>`
+                       : ''}
+                  </ul>
+                </li>
+              `).join('')}
+            </ul>
+          `;
+        } else {
+          recsOutput.textContent = "No recommendations found.";
+        }
+
+      } catch (err) {
+        console.error(err);
+        loadingEl.textContent = "Error during analysis: " + err.message;
+        return;
+      }
+
+      // fake score(random)
+      try {
+        const scoreRes = await fetch('http://localhost:9000/api/analyze-health', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ text: extractedText })
+        });
+        if (!scoreRes.ok) throw new Error(await scoreRes.text());
+        const { score, rationale } = await scoreRes.json();
+        loadingEl.textContent = `Last health score: ${score} (${rationale})`;
+
+        
+        const progressData = JSON.parse(localStorage.getItem('progressData') || '[]');
+        progressData.push({ date: new Date().toISOString().split('T')[0], score });
+        localStorage.setItem('progressData', JSON.stringify(progressData));
+
+      } catch (err) {
+        console.error(err);
+        loadingEl.textContent = "Error during scoring: " + err.message;
+      }
+
+      //q&a chatbo t
+      document.getElementById('ask-btn').onclick = async () => {
+        const q = document.getElementById('user-question').value.trim();
+        if (!q) return;
+        const chat = document.getElementById('chat-output');
+        chat.innerHTML += `<p><strong>You:</strong> ${q}</p>`;
+        chat.scrollTop = chat.scrollHeight;
+        env.allowLocalModels = false;
+        const qa = await pipeline('question-answering','Xenova/distilbert-base-uncased-distilled-squad');
+        const out = await qa(q, extractedText);
+        chat.innerHTML += `<p><strong>Chatbot:</strong> ${out.answer}</p>`;
+        document.getElementById('user-question').value = '';
+        chat.scrollTop = chat.scrollHeight;
+      };
+    });
+  </script>
+</body>
+</html>
